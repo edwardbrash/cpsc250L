@@ -1,19 +1,33 @@
-# Lab 1: Environment Setup and GitHub Workflow
+# Lab 1: Professional Development Environment Setup
 
 ## Overview
 
-In this course, all lab work will be completed using GitHub, git, and PyCharm.
+Welcome to CPSC 250L.
 
-You will:
+In this course, all lab work will be completed using:
 
-1. Fork the instructor's repository.
-2. Clone your fork to your laptop.
-3. Edit and run Python programs locally.
-4. Commit your work using git.
-5. Push your work to GitHub.
-6. Demonstrate your work in person during lab.
+- Python
+- PyCharm
+- GitHub
+- git
+- the command line / terminal
 
-This first lab is designed to ensure that your development environment is working correctly before we begin more advanced programming exercises.
+You will use professional software development tools throughout the semester.
+
+This first lab is designed to ensure that your development environment is fully operational before we begin more advanced programming exercises.
+
+By the end of this lab, you should have:
+
+- Python installed
+- PyCharm installed
+- a GitHub account
+- a fork of the course repository
+- a cloned local repository
+- a functioning Python interpreter
+- required Python packages installed
+- a successful git commit and push to GitHub
+
+This lab is extremely important. Problems with setup and configuration can make future labs much more difficult, so take your time and ask questions whenever needed.
 
 ---
 
@@ -21,19 +35,143 @@ This first lab is designed to ensure that your development environment is workin
 
 By the end of this lab, you should be able to:
 
-- Create or access a GitHub account.
-- Fork a GitHub repository.
-- Clone a repository using PyCharm.
-- Configure a Python interpreter.
-- Install required Python packages.
-- Edit and run a Python file.
-- Commit changes using git.
-- Push changes to GitHub.
-- Demonstrate your work to the instructor.
+- Install Python
+- Install PyCharm Community Edition
+- Create or access a GitHub account
+- Fork a GitHub repository
+- Clone a repository using PyCharm
+- Configure a Python interpreter
+- Install required Python packages
+- Use the terminal / command line
+- Edit and run a Python program
+- Commit changes using git
+- Push changes to GitHub
+- Demonstrate your work to the instructor
 
 ---
 
-# Part 1: Create a GitHub Account
+# Important Concepts
+
+Before beginning, it is important to understand the difference between Python and PyCharm.
+
+| Tool | Purpose |
+|---|---|
+| Python | The programming language that executes programs |
+| PyCharm | The development environment used to write and manage programs |
+
+PyCharm helps you write code, but Python is what actually runs the code.
+
+---
+
+# Part 0: Install Python
+
+## Windows Instructions
+
+1. Go to:
+
+```text
+https://www.python.org/downloads/
+```
+
+2. Download the latest stable Python 3 release.
+
+3. Run the installer.
+
+IMPORTANT:
+
+Before clicking Install, make sure you CHECK the box:
+
+```text
+Add Python to PATH
+```
+
+4. Complete the installation.
+
+---
+
+## Verify Python Installation on Windows
+
+Open:
+
+```text
+Command Prompt
+```
+
+Run:
+
+```bash
+python --version
+```
+
+You should see output similar to:
+
+```text
+Python 3.12.2
+```
+
+---
+
+## macOS Instructions
+
+1. Go to:
+
+```text
+https://www.python.org/downloads/
+```
+
+2. Download the latest macOS installer.
+
+3. Run the installer.
+
+4. Complete the installation.
+
+---
+
+## Verify Python Installation on macOS
+
+Open:
+
+```text
+Terminal
+```
+
+Run:
+
+```bash
+python3 --version
+```
+
+You should see output similar to:
+
+```text
+Python 3.12.2
+```
+
+---
+
+# Part 1: Install PyCharm Community Edition
+
+1. Go to:
+
+```text
+https://www.jetbrains.com/pycharm/download/
+```
+
+2. Download:
+
+```text
+PyCharm Community Edition
+```
+
+DO NOT download the Professional version.
+
+3. Install PyCharm.
+
+4. Launch PyCharm.
+
+---
+
+# Part 2: Create a GitHub Account
 
 If you do not already have a GitHub account:
 
@@ -51,7 +189,7 @@ Please choose a professional and identifiable username if possible.
 
 ---
 
-# Part 2: Fork the CPSC250L Repository
+# Part 3: Fork the CPSC250L Repository
 
 Go to the instructor repository:
 
@@ -73,7 +211,7 @@ This copy belongs to you.
 
 ---
 
-# Part 3: Clone Your Fork into PyCharm
+# Part 4: Clone Your Fork into PyCharm
 
 ## Step 1: Open PyCharm
 
@@ -128,22 +266,24 @@ PyCharm should now download the repository to your computer.
 
 ---
 
-# Part 4: Configure Python
+# Part 5: Configure Python in PyCharm
 
-You must have a working Python interpreter configured in PyCharm.
+You must configure a Python interpreter for your project.
 
-## Check the Interpreter
+## Windows
+
+In PyCharm:
+
+```text
+File -> Settings -> Project -> Python Interpreter
+```
+
+## macOS
 
 In PyCharm:
 
 ```text
 PyCharm -> Settings -> Project -> Python Interpreter
-```
-
-or on Windows:
-
-```text
-File -> Settings -> Project -> Python Interpreter
 ```
 
 A Python interpreter should already appear.
@@ -156,7 +296,53 @@ If not:
 
 ---
 
-# Part 5: Install Required Packages
+# Part 6: Use the Terminal / Command Line
+
+Professional programmers frequently use the terminal.
+
+PyCharm includes a built-in terminal window.
+
+Open the terminal in PyCharm.
+
+---
+
+## Windows Terminal Commands
+
+Try the following commands:
+
+```bash
+dir
+```
+
+```bash
+python --version
+```
+
+```bash
+pip list
+```
+
+---
+
+## macOS Terminal Commands
+
+Try the following commands:
+
+```bash
+ls
+```
+
+```bash
+python3 --version
+```
+
+```bash
+pip3 list
+```
+
+---
+
+# Part 7: Install Required Packages
 
 This course uses several external Python libraries.
 
@@ -166,27 +352,33 @@ The required packages are listed in:
 requirements.txt
 ```
 
-You may install them either:
+Install them using the PyCharm terminal.
 
-- through the PyCharm package manager
+---
 
-OR
+## Windows
 
-- through the PyCharm terminal
-
-## Terminal Installation Method
-
-Open the PyCharm terminal and run:
+Run:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-This may take a few minutes.
+---
+
+## macOS
+
+Run:
+
+```bash
+pip3 install -r requirements.txt
+```
+
+This process may take several minutes.
 
 ---
 
-# Part 6: Edit and Run the Program
+# Part 8: Edit and Run the Program
 
 Open the file:
 
@@ -216,7 +408,7 @@ print("GitHub username: janesmith")
 
 ---
 
-# Part 7: Run the Program
+# Part 9: Run the Program
 
 Run the program inside PyCharm.
 
@@ -232,9 +424,9 @@ If your program runs successfully, your Python environment is working correctly.
 
 ---
 
-# Part 8: Commit Your Changes
+# Part 10: Commit Your Changes
 
-Now you will save your changes using git.
+Now you will save your work using git.
 
 ## Using the PyCharm Interface
 
@@ -256,7 +448,7 @@ Complete Lab 1 environment setup
 
 ---
 
-# Part 9: Push Your Changes to GitHub
+# Part 11: Push Your Changes to GitHub
 
 If you did not already choose **Commit and Push**, then:
 
@@ -272,7 +464,7 @@ After pushing, your changes should now appear in your GitHub repository online.
 
 ---
 
-# Part 10: Verify Your Push
+# Part 12: Verify Your Push
 
 Go to your GitHub repository in your web browser.
 
@@ -292,22 +484,27 @@ Verify that your edited file appears online.
 
 ---
 
-# Part 11: Instructor Checkoff
+# Part 13: Instructor Checkoff
 
 Before leaving lab, demonstrate the following to the instructor:
 
-- Your GitHub account
-- Your fork of the repository
-- Your cloned repository in PyCharm
-- Your configured Python interpreter
-- Your installed packages
-- Your modified `helloworld.py`
-- Your running program
-- Your git commit history
-- Your pushed changes on GitHub
+- Python installed successfully
+- PyCharm installed successfully
+- GitHub account exists
+- Fork of the repository exists
+- Repository cloned locally
+- Python interpreter configured
+- Terminal commands executed successfully
+- Required packages installed
+- Modified `helloworld.py`
+- Successful program execution
+- git commit history
+- Successful push to GitHub
 
 You may also be asked simple questions such as:
 
+- What is Python?
+- What is PyCharm?
 - What is the purpose of a fork?
 - What does git commit do?
 - What does git push do?
@@ -315,9 +512,60 @@ You may also be asked simple questions such as:
 
 ---
 
+# Troubleshooting
+
+## Problem: `python` command not found
+
+Try:
+
+```bash
+python3 --version
+```
+
+---
+
+## Problem: `pip` command not found
+
+Try:
+
+```bash
+python -m pip install numpy
+```
+
+or on macOS:
+
+```bash
+python3 -m pip install numpy
+```
+
+---
+
+## Problem: PyCharm says no interpreter configured
+
+Go to:
+
+```text
+Settings -> Python Interpreter
+```
+
+and select your installed Python version.
+
+---
+
+## Problem: Program will not run
+
+Check:
+
+- Python interpreter configured
+- File saved correctly
+- No typing mistakes in the code
+- Required packages installed
+
+---
+
 # Congratulations
 
-You now have a fully working development environment for CPSC 250L.
+You now have a fully functioning development environment for CPSC 250L.
 
 You are ready to begin future labs involving:
 
