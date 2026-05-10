@@ -1,0 +1,85 @@
+# Lab 4: File I/O and CSV Data Processing
+#
+# Complete this program so that it reads quiz score data from a CSV file,
+# cleans the data, computes student averages, and prints a report.
+
+
+def clean_score(score_text):
+    """
+    Convert a score string into an integer.
+
+    If the score is missing or invalid, return None.
+    """
+    pass
+
+
+def calculate_average(scores):
+    """
+    Calculate the average of a list of numeric scores.
+
+    If the list is empty, return None.
+    """
+    pass
+
+
+def read_scores(filename):
+    """
+    Read student quiz scores from a CSV file.
+
+    Return a list of dictionaries.
+
+    Each dictionary should contain:
+        "name": student name
+        "scores": list of valid numeric quiz scores
+        "average": student average
+    """
+    pass
+
+
+def letter_grade(average):
+    """
+    Return a simple letter grade based on the average.
+
+    Suggested scale:
+        A: average >= 87
+        B: average >= 77
+        C: average >= 67
+        D: average >= 57
+        F: otherwise
+
+    If the average is None, return "N/A".
+    """
+    pass
+
+
+def print_student_report(records):
+    """
+    Print one line of output for each student.
+    """
+    pass
+
+
+def print_class_summary(records):
+    """
+    Print a summary for the whole class.
+
+    Include:
+        number of students
+        class average
+        highest average
+        lowest average
+    """
+    pass
+
+
+def main():
+    filename = "../data/quiz_scores.csv"
+
+    records = read_scores(filename)
+
+    print_student_report(records)
+    print()
+    print_class_summary(records)
+
+
+main()
