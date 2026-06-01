@@ -1,10 +1,5 @@
----
-
 ## Step 7: Lab 1 checkoff file
 
-`labs/lab01_environment_setup/checkoff.md`
-
-```markdown
 # Lab 1 Checkoff
 
 Student name: _______________________________
@@ -36,7 +31,3 @@ Ask one of the following:
 - Where is your code stored remotely?
 
 Notes:
-
-______________________________________________________
-
-______________________________________________________
