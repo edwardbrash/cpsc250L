@@ -2,6 +2,6 @@
 
 Current active lab:
 
-- lab1_environment_setup
+- lab02_python_review_git
 
 Students should complete this lab during the current laboratory session.
