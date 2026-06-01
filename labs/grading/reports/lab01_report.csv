@@ -1,2 +1,0 @@
-name,github_username,repo_url,clone_or_update,helloworld_exists,helloworld_path,helloworld_runs,helloworld_output,commits_since_starter,has_student_commit,working_tree_clean,recent_commits,auto_score_out_of_8,notes
-Edward Brash,edwardbrash,https://github.com/edwardbrash/cpsc250L.git,no,no,,no,,,unknown,no,,0,student_repos/edwardbrash exists but is not a git repository
