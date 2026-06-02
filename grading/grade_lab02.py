@@ -4,19 +4,13 @@ grade_lab02.py
 
 Automated Lab 2 checker for CPSC 250L student forks.
 
-This script clones/updates each student's fork and checks the automatable parts
-of Lab 2:
-
-  - repository can be cloned/updated
-  - statistics_program.py exists
-  - temperatures.txt exists
-  - required functions exist
-  - read_temperatures() returns a list of floats
-  - blank lines are ignored
-  - count/min/max/average are correct
-  - program runs from the terminal
-  - output appears to contain the expected summary information
-  - Git history shows at least three commits after a starter commit, if supplied
+Version 2 fixes:
+  - Correct expected average for the provided temperatures.txt is 75.905.
+  - Blank-line handling is treated as optional/diagnostic, not required for the automated score.
+    The Lab 2 checkoff lists "Ignore blank lines in the input file" as a possible live modification,
+    not a required item.
+  - Output checking is more flexible about decimal formatting and punctuation.
+  - The report still records TODO count, but TODO comments do not affect the score.
 
 Expected students.csv format:
 
@@ -26,17 +20,12 @@ Alice Smith,asmith,https://github.com/asmith/cpsc250L.git,student
 
 The type column is optional. Use --exclude-test to skip rows marked type=test.
 
-Recommended use with a known Lab 2 starter commit:
+Recommended use:
 
 python grade_lab02.py \
   --students students.csv \
   --workdir student_repos \
-  --report reports/lab02_report.csv \
-  --starter-commit LAB2_STARTER_COMMIT_HASH
-
-If you do not know the starter commit, omit --starter-commit. The script will
-fall back to checking whether at least three recent commits exist in the repo,
-but this is less precise.
+  --report reports/lab02_report.csv
 """
 
 from __future__ import annotations
@@ -131,7 +120,6 @@ def find_file(repo_dir: Path, filename: str) -> Optional[Path]:
     if not filtered:
         return None
 
-    # Prefer lab02/lab2/data-relevant paths.
     filtered.sort(
         key=lambda p: (
             "lab02" not in str(p).lower() and "lab2" not in str(p).lower(),
@@ -173,36 +161,21 @@ def import_student_module(py_path: Path) -> Tuple[Optional[Any], str]:
         return None, f"Import failed: {exc}"
 
 
-def write_temp_data_file() -> Path:
+def write_temp_data_file(include_blank_lines: bool = False) -> Path:
     temp_dir = Path(tempfile.mkdtemp(prefix="lab02_grader_"))
-    data_path = temp_dir / "temperatures_with_blank_lines.txt"
+    data_path = temp_dir / "temperatures.txt"
 
-    lines = [
-        "72.4",
-        "",
-        "75.1",
-        "  ",
-        "73.8",
-        "70.2",
-        "68.9",
-        "71.5",
-        "74.0",
-        "76.3",
-        "79.1",
-        "82.4",
-        "85.0",
-        "88.1",
-        "86.7",
-        "83.2",
-        "80.5",
-        "77.6",
-        "74.8",
-        "70.9",
-        "66.4",
-        "61.2",
-        "",
-    ]
-    data_path.write_text("\n".join(lines), encoding="utf-8")
+    if include_blank_lines:
+        lines = []
+        for i, value in enumerate(EXPECTED_VALUES):
+            lines.append(str(value))
+            if i in {0, 3, 9, 17}:
+                lines.append("")
+                lines.append("   ")
+    else:
+        lines = [str(value) for value in EXPECTED_VALUES]
+
+    data_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return data_path
 
 
@@ -213,24 +186,24 @@ def close_enough(actual: float, expected: float, tol: float = 1e-6) -> bool:
         return False
 
 
-def test_student_functions(module: Any) -> Dict[str, str]:
+def test_required_student_functions(module: Any) -> Dict[str, str]:
     result = {
         "read_returns_list": "no",
         "read_values_correct": "no",
-        "blank_lines_ignored": "no",
         "count_correct": "no",
         "minimum_correct": "no",
         "maximum_correct": "no",
         "average_correct": "no",
+        "optional_blank_lines_ignored": "not tested",
         "function_test_notes": "",
     }
 
-    temp_data = write_temp_data_file()
+    temp_data = write_temp_data_file(include_blank_lines=False)
 
     try:
         values = module.read_temperatures(temp_data)
     except Exception as exc:
-        result["function_test_notes"] += f"read_temperatures raised: {exc}. "
+        result["function_test_notes"] += f"read_temperatures raised on standard file: {exc}. "
         return result
 
     if isinstance(values, list):
@@ -246,7 +219,6 @@ def test_student_functions(module: Any) -> Dict[str, str]:
         return result
 
     if len(numeric_values) == EXPECTED_COUNT:
-        result["blank_lines_ignored"] = "yes"
         result["count_correct"] = "yes"
     else:
         result["function_test_notes"] += f"Expected {EXPECTED_COUNT} readings, got {len(numeric_values)}. "
@@ -255,6 +227,8 @@ def test_student_functions(module: Any) -> Dict[str, str]:
         close_enough(a, b) for a, b in zip(numeric_values, EXPECTED_VALUES)
     ):
         result["read_values_correct"] = "yes"
+    else:
+        result["function_test_notes"] += "Read values do not exactly match expected temperature data. "
 
     try:
         minimum = module.compute_minimum(numeric_values)
@@ -283,6 +257,20 @@ def test_student_functions(module: Any) -> Dict[str, str]:
     except Exception as exc:
         result["function_test_notes"] += f"compute_average raised: {exc}. "
 
+    # Optional diagnostic only: useful if the live modification asks for blank-line handling.
+    blank_data = write_temp_data_file(include_blank_lines=True)
+    try:
+        blank_values = module.read_temperatures(blank_data)
+        blank_numeric = [float(x) for x in blank_values]
+        if len(blank_numeric) == EXPECTED_COUNT and all(
+            close_enough(a, b) for a, b in zip(blank_numeric, EXPECTED_VALUES)
+        ):
+            result["optional_blank_lines_ignored"] = "yes"
+        else:
+            result["optional_blank_lines_ignored"] = "no"
+    except Exception:
+        result["optional_blank_lines_ignored"] = "no"
+
     return result
 
 
@@ -301,14 +289,14 @@ def output_has_expected_content(output: str) -> Tuple[bool, str]:
     lowered = output.lower()
     notes = []
 
-    expected_tokens = [
-        ("count/number of readings", ["number", "readings"]),
+    label_groups = [
+        ("number/readings", ["number", "readings"]),
         ("minimum", ["minimum"]),
         ("maximum", ["maximum"]),
         ("average", ["average"]),
     ]
 
-    for label, tokens in expected_tokens:
+    for label, tokens in label_groups:
         if not all(token in lowered for token in tokens):
             notes.append(f"Missing label clue: {label}")
 
@@ -317,10 +305,10 @@ def output_has_expected_content(output: str) -> Tuple[bool, str]:
         if clue not in output:
             notes.append(f"Missing numeric clue: {clue}")
 
-    # Average may be formatted differently, so accept several representations.
-    average_ok = any(clue in output for clue in ["76.42", "76.4", "76.415"])
+    # Accept common average formats: 75.905, 75.9050, 75.91, 75.9
+    average_ok = any(clue in output for clue in ["75.905", "75.91", "75.90", "75.9"])
     if not average_ok:
-        notes.append("Missing average clue near 76.42")
+        notes.append("Missing average clue near 75.905")
 
     return len(notes) == 0, "; ".join(notes)
 
@@ -343,7 +331,7 @@ def count_commits_since_starter(repo_dir: Path, starter_commit: Optional[str]) -
         return None, f"could not parse commit count: {out}"
 
 
-def get_recent_commit_count(repo_dir: Path) -> Tuple[Optional[int], str]:
+def get_total_commit_count(repo_dir: Path) -> Tuple[Optional[int], str]:
     code, out, err = run_command(["git", "rev-list", "--count", "HEAD"], cwd=repo_dir)
     if code != 0:
         return None, err or out
@@ -392,11 +380,11 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
         "todo_count": "",
         "read_returns_list": "no",
         "read_values_correct": "no",
-        "blank_lines_ignored": "no",
         "count_correct": "no",
         "minimum_correct": "no",
         "maximum_correct": "no",
         "average_correct": "no",
+        "optional_blank_lines_ignored": "not tested",
         "terminal_run_success": "no",
         "output_readable_and_formatted": "no",
         "program_output": "",
@@ -455,7 +443,7 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
 
     module, import_note = import_student_module(py_path)
     if module is not None:
-        test_results = test_student_functions(module)
+        test_results = test_required_student_functions(module)
         for key, value in test_results.items():
             if key in result:
                 result[key] = value
@@ -464,7 +452,6 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
         for key in [
             "read_returns_list",
             "read_values_correct",
-            "blank_lines_ignored",
             "count_correct",
             "minimum_correct",
             "maximum_correct",
@@ -501,9 +488,8 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
             result["notes"] += f"Commit check failed: {commit_note}. "
     else:
         result["commit_check_method"] = "fallback: total commits in repo"
-        total_commits, total_note = get_recent_commit_count(repo_dir)
+        total_commits, total_note = get_total_commit_count(repo_dir)
         if total_commits is not None:
-            result["commits_after_starter"] = ""
             if total_commits >= 3:
                 result["at_least_three_commits"] = "yes"
                 score += 1
@@ -557,11 +543,11 @@ def write_report(path: Path, rows: List[Dict[str, str]]) -> None:
         "todo_count",
         "read_returns_list",
         "read_values_correct",
-        "blank_lines_ignored",
         "count_correct",
         "minimum_correct",
         "maximum_correct",
         "average_correct",
+        "optional_blank_lines_ignored",
         "terminal_run_success",
         "output_readable_and_formatted",
         "program_output",
