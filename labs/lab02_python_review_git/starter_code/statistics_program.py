@@ -9,8 +9,6 @@ Complete the TODO sections below.
 """
 
 from pathlib import Path
-import statistics
-
 
 def read_temperatures(filename):
     """
@@ -34,14 +32,6 @@ def read_temperatures(filename):
     # TODO: Convert each non-blank line to a float.
     # TODO: Append each temperature to the temperatures list.
 
-    with open(filename, "r") as file:
-        # 3. Loop through each line in the file
-        for line in file:
-            # 4. Convert the string to a float and add it to the list
-            if line != "\n":
-                number = float(line.strip())
-                temperatures.append(number)
-
     return temperatures
 
 
@@ -50,10 +40,7 @@ def compute_average(values):
     Compute the average of a list of numbers.
     """
     # TODO: Replace this with a correct average calculation.
-    sum = 0.0
-    for value in values:
-        sum += value
-    return sum / len(values)
+    return 0.0
 
 
 
@@ -62,11 +49,7 @@ def compute_minimum(values):
     Compute the minimum value in a list of numbers.
     """
     # TODO: Replace this with a correct minimum calculation.
-    min = values[0]
-    for value in values:
-        if value < min:
-            min = value
-    return min
+    return 0.0
 
 
 def compute_maximum(values):
@@ -74,7 +57,7 @@ def compute_maximum(values):
     Compute the maximum value in a list of numbers.
     """
     # TODO: Replace this with a correct maximum calculation.
-    return max(values)
+    return 0.0
 
 
 def print_summary(values):
@@ -89,9 +72,9 @@ def print_summary(values):
     # TODO: Improve this output formatting.
     print("Temperature Summary")
     print("Number of readings:", count)
-    print(f"Minimum temperature: {minimum:.2f}")
-    print(f"Maximum temperature: {maximum:.2f}")
-    print(f"Average temperature: {average:.4f}")
+    print("Minimum temperature:", minimum)
+    print("Maximum temperature:", maximum)
+    print("Average temperature:", average)
 
 
 def main():
