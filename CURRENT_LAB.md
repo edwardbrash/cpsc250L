@@ -2,6 +2,6 @@
 
 Current active lab:
 
-- lab02_python_review_git
+- lab03_functions_modular_design
 
 Students should complete this lab during the current laboratory session.
