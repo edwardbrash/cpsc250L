@@ -9,6 +9,7 @@ Complete the TODO sections below.
 """
 
 from pathlib import Path
+import statistics
 
 
 def read_temperatures(filename):
@@ -49,7 +50,8 @@ def compute_average(values):
     Compute the average of a list of numbers.
     """
     # TODO: Replace this with a correct average calculation.
-    return 0.0
+    return statistics.mean(values)
+
 
 
 def compute_minimum(values):
@@ -57,7 +59,11 @@ def compute_minimum(values):
     Compute the minimum value in a list of numbers.
     """
     # TODO: Replace this with a correct minimum calculation.
-    return 0.0
+    min = values[0]
+    for value in values:
+        if value < min:
+            min = value
+    return min
 
 
 def compute_maximum(values):
