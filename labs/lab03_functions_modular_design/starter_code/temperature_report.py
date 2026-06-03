@@ -13,10 +13,10 @@ def calculate_average(values):
     return sum(values) / len(values) if values else 0
 
 def find_maximum(values):
-    return 0
+    return max(values)
 
 def find_minimum(values):
-    return 0
+    return min(values)
 
 def count_above_threshold(values, threshold):
     return 0
