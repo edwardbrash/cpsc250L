@@ -10,7 +10,6 @@ Complete the TODO sections below.
 
 from pathlib import Path
 
-
 def read_temperatures(filename):
     """
     Read temperature values from a text file.
@@ -29,17 +28,9 @@ def read_temperatures(filename):
     """
     temperatures = []
 
-    myfile = Path(filename)
-    if myfile.is_file():
-        with open(myfile, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line:  # Check if the line is not blank
-                    try:
-                        temp = float(line)  # Convert the line to a float
-                        temperatures.append(temp)  # Append the temperature to the list
-                    except ValueError:
-                        print(f"Warning: '{line}' is not a valid number and will be skipped.")
+    # TODO: Open the file and read each line.
+    # TODO: Convert each non-blank line to a float.
+    # TODO: Append each temperature to the temperatures list.
 
     return temperatures
 
@@ -48,10 +39,9 @@ def compute_average(values):
     """
     Compute the average of a list of numbers.
     """
+    # TODO: Replace this with a correct average calculation.
+    return 0.0
 
-    if len(values) < 1:
-        return 0.0
-    return sum(values) / len(values)
 
 
 def compute_minimum(values):
@@ -59,9 +49,7 @@ def compute_minimum(values):
     Compute the minimum value in a list of numbers.
     """
     # TODO: Replace this with a correct minimum calculation.
-    if len(values) < 1:
-        return 0.0
-    return min(values)
+    return 0.0
 
 
 def compute_maximum(values):
@@ -69,9 +57,7 @@ def compute_maximum(values):
     Compute the maximum value in a list of numbers.
     """
     # TODO: Replace this with a correct maximum calculation.
-    if len(values) < 1:
-        return 0.0
-    return max(values)
+    return 0.0
 
 
 def print_summary(values):
@@ -84,16 +70,11 @@ def print_summary(values):
     average = compute_average(values)
 
     # TODO: Improve this output formatting.
-    #print("Temperature Summary")
-    #print("Number of readings:", count)
-    #print("Minimum temperature:", minimum)
-    #print("Maximum temperature:", maximum)
-    #print("Average temperature:", average)
-    print("Temperatures Summary")
-    print("Number of readings: {}".format(count))
-    print("Minimum temperature: {:.2f}".format(minimum))
-    print("Maximum temperature: {:.2f}".format(maximum))
-    print("Average temperature: {:.2f}".format(average))
+    print("Temperature Summary")
+    print("Number of readings:", count)
+    print("Minimum temperature:", minimum)
+    print("Maximum temperature:", maximum)
+    print("Average temperature:", average)
 
 
 def main():
