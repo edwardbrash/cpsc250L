@@ -12,3 +12,6 @@ env/
 
 # macOS
 .DS_Store
+
+# student repos
+grading/student_repos
