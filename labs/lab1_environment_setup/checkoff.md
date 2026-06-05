@@ -1,10 +1,6 @@
-## Step 7: Lab 1 checkoff file
+Student name: Jayden Poe
 
-# Lab 1 Checkoff
-
-Student name: ________Edward Brash_______________________
-
-GitHub username: _____edwardbrash _______________________
+GitHub username: poejayden60
 
 ## Required items
 
@@ -50,6 +46,10 @@ On github.com's servers, at https://github.com/edwardbrash/cpsc250L.git
 
 Notes:
 
-______________________________________________________
+- The instructor's repository is the starting point like a format and mine I am able to edit and change
+- commit is to save my work
+- push uploads it to git
+- locally in my computer
+- remotely on github servers
 
 ______________________________________________________
