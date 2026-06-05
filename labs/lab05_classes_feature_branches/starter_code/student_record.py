@@ -11,8 +11,11 @@ class StudentRecord:
         Parameters:
             name: student name as a string
             student_id: student ID as a string
+            scores[]: scores as a list
         """
-        pass
+        self.name = name
+        self.student_id = student_id
+        self.scores = []
 
     def add_score(self, score):
         """
@@ -20,7 +23,9 @@ class StudentRecord:
 
         Only add scores between 0 and 100.
         """
-        pass
+        if 0 <= score <= 100:
+            self.scores.append(score)
+
 
     def calculate_average(self):
         """
@@ -28,7 +33,10 @@ class StudentRecord:
 
         If the student has no scores, return None.
         """
-        pass
+        if self.scores:
+            return sum(self.scores) / len(self.scores)
+        else:
+            return None
 
     def highest_score(self):
         """
@@ -36,7 +44,10 @@ class StudentRecord:
 
         If the student has no scores, return None.
         """
-        pass
+        if self.scores:
+            return max(self.scores)
+        else:
+            return None
 
     def lowest_score(self):
         """
@@ -44,7 +55,10 @@ class StudentRecord:
 
         If the student has no scores, return None.
         """
-        pass
+        if self.scores:
+            return min(self.scores)
+        else:
+            return None
 
     def letter_grade(self):
         """
@@ -57,10 +71,22 @@ class StudentRecord:
             D: average >= 57
             F: otherwise
         """
-        pass
+        average = self.calculate_average()
+        if average is None:
+            return "N/A"
+        elif average >= 87:
+            return "A"
+        elif average >= 77:
+            return "B"
+        elif average >= 67:
+            return "C"
+        elif average >= 57:
+            return "D"
+        else:
+            return "F"
 
     def __str__(self):
         """
         Return a readable string representation of the student record.
         """
-        return "dummy string"
+        return f"StudentRecord(name={self.name}, student_id={self.student_id}, scores={getattr(self, 'scores', [])})"
