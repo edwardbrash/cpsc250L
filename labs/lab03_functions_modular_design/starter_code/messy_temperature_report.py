@@ -1,13 +1,19 @@
+# create an empty list to hold temps
 temperatures = []
 
+# open the file and attach to a socket called file
 file = open("../data/june_temperatures.txt", "r")
 
+# loop over each line in the file
 for line in file:
+    # strip off the \n at the end of the line
     line = line.strip()
 
+    # if the line is not empty, convert to int and add to list
     if line != "":
         temperatures.append(int(line))
 
+# close the file
 file.close()
 
 total = 0
