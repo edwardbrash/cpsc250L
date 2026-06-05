@@ -4,6 +4,7 @@
 
 
 class StudentRecord:
+    # class constructor
     def __init__(self, name, student_id):
         """
         Create a new student record.
@@ -18,6 +19,7 @@ class StudentRecord:
         self.scores = []
 
     def add_score(self, score):
+        # add a score to the scores list
         """
         Add one quiz score to this student's list of scores.
 
@@ -89,4 +91,5 @@ class StudentRecord:
         """
         Return a readable string representation of the student record.
         """
+        # maybe this could be fancied up later!
         return f"StudentRecord(name={self.name}, student_id={self.student_id}, scores={getattr(self, 'scores', [])})"
