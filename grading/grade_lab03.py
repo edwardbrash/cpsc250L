@@ -357,6 +357,39 @@ def get_recent_commits(repo_dir: Path, n: int = 8) -> str:
     return out if code == 0 else err
 
 
+
+def count_commits_touching_path(repo_dir: Path, lab_path: str) -> Tuple[Optional[int], str]:
+    """Count commits that touched a specific path relative to the repository root."""
+    normalized_path = lab_path.strip().strip("/")
+    if not normalized_path:
+        return None, "empty lab path"
+
+    code, out, err = run_command(
+        ["git", "rev-list", "--count", "HEAD", "--", normalized_path],
+        cwd=repo_dir,
+    )
+
+    if code != 0:
+        return None, err or out
+
+    try:
+        return int(out), "ok"
+    except ValueError:
+        return None, f"could not parse path-specific commit count: {out}"
+
+
+def get_recent_commits_touching_path(repo_dir: Path, lab_path: str, n: int = 8) -> str:
+    """Return recent commits that touched a specific path relative to the repository root."""
+    normalized_path = lab_path.strip().strip("/")
+    if not normalized_path:
+        return "empty lab path"
+
+    code, out, err = run_command(
+        ["git", "log", "--oneline", f"-{n}", "--", normalized_path],
+        cwd=repo_dir,
+    )
+    return out if code == 0 else err
+
 def is_working_tree_clean(repo_dir: Path) -> Tuple[bool, str]:
     code, out, err = run_command(["git", "status", "--porcelain"], cwd=repo_dir)
     if code != 0:
@@ -395,7 +428,7 @@ def compute_auto_score(result: Dict[str, str]) -> int:
     return score
 
 
-def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[str]) -> Dict[str, str]:
+def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[str], lab_path: Optional[str]) -> Dict[str, str]:
     name = row["name"].strip()
     username = row["github_username"].strip()
     repo_url = row["repo_url"].strip()
@@ -424,6 +457,9 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
         "output_readable_and_formatted": "no",
         "program_output": "",
         "commits_after_starter": "",
+        "lab_path_checked": "",
+        "commits_touching_lab": "",
+        "recent_lab_commits": "",
         "at_least_three_commits": "no",
         "commit_check_method": "",
         "working_tree_clean": "no",
@@ -460,6 +496,8 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
         result["notes"] += "Lab 3 temperature data file not found. "
 
     if not py_path:
+        if lab_path:
+            result["recent_lab_commits"] = get_recent_commits_touching_path(repo_dir, lab_path).replace("\n", " | ")[:700]
         result["recent_commits"] = get_recent_commits(repo_dir).replace("\n", " | ")[:700]
         result["auto_score_out_of_14"] = str(compute_auto_score(result))
         return result
@@ -498,32 +536,42 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
 
     apply_terminal_fallback(result)
 
-    commits_after, commit_note = count_commits_since_starter(repo_dir, starter_commit)
-    if starter_commit:
-        result["commit_check_method"] = f"commits after starter commit {starter_commit}"
-        if commits_after is not None:
-            result["commits_after_starter"] = str(commits_after)
-            if commits_after >= 3:
+    if lab_path:
+        result["lab_path_checked"] = lab_path
+        result["commit_check_method"] = f"commits touching {lab_path}"
+        commits_touching, commit_note = count_commits_touching_path(repo_dir, lab_path)
+        if commits_touching is not None:
+            result["commits_touching_lab"] = str(commits_touching)
+            if commits_touching >= 3:
                 result["at_least_three_commits"] = "yes"
             else:
-                result["notes"] += f"Expected at least 3 commits after starter commit, got {commits_after}. "
+                result["notes"] += f"Expected at least 3 commits touching {lab_path}, got {commits_touching}. "
         else:
-            result["notes"] += f"Commit check failed: {commit_note}. "
+            result["notes"] += f"Lab path commit check failed: {commit_note}. "
     else:
-        result["commit_check_method"] = "fallback: total commits in repo"
-        total_commits, total_note = get_total_commit_count(repo_dir)
-        if total_commits is not None:
-            if total_commits >= 3:
-                result["at_least_three_commits"] = "yes"
+        commits_after, commit_note = count_commits_since_starter(repo_dir, starter_commit)
+        if starter_commit:
+            result["commit_check_method"] = f"commits after starter commit {starter_commit}"
+            if commits_after is not None:
+                result["commits_after_starter"] = str(commits_after)
+                if commits_after >= 3:
+                    result["at_least_three_commits"] = "yes"
+                else:
+                    result["notes"] += f"Expected at least 3 commits after starter commit, got {commits_after}. "
             else:
-                result["notes"] += f"Starter commit not provided; total repo commits is only {total_commits}. "
+                result["notes"] += f"Commit check failed: {commit_note}. "
         else:
-            result["notes"] += f"Starter commit not provided; total commit fallback failed: {total_note}. "
+            result["commit_check_method"] = "not checked: use --lab-path for lab-specific commit evidence"
+            result["notes"] += "Commit evidence not awarded because neither --lab-path nor --starter-commit was supplied. "
 
     clean, clean_note = is_working_tree_clean(repo_dir)
     result["working_tree_clean"] = "yes" if clean else "no"
     if not clean:
         result["notes"] += f"Working tree: {clean_note}. "
+
+    if lab_path:
+
+        result["recent_lab_commits"] = get_recent_commits_touching_path(repo_dir, lab_path).replace("\n", " | ")[:700]
 
     result["recent_commits"] = get_recent_commits(repo_dir).replace("\n", " | ")[:700]
     result["auto_score_out_of_14"] = str(compute_auto_score(result))
@@ -571,6 +619,9 @@ def write_report(path: Path, rows: List[Dict[str, str]]) -> None:
         "output_readable_and_formatted",
         "program_output",
         "commits_after_starter",
+        "lab_path_checked",
+        "commits_touching_lab",
+        "recent_lab_commits",
         "at_least_three_commits",
         "commit_check_method",
         "working_tree_clean",
@@ -595,6 +646,7 @@ def main() -> int:
     parser.add_argument("--workdir", default="student_repos", help="Folder where repos are cloned")
     parser.add_argument("--report", default="reports/lab03_report.csv", help="Output CSV report path")
     parser.add_argument("--starter-commit", default=None, help="Optional Lab 3 starter commit hash")
+    parser.add_argument("--lab-path", default=None, help="Optional path to this lab folder relative to the repository root. When supplied, commit credit is based on commits touching this path.")
     parser.add_argument("--exclude-test", action="store_true", help="Skip rows where type is test")
     args = parser.parse_args()
 
@@ -606,7 +658,7 @@ def main() -> int:
 
     for student in students:
         print(f"Grading {student['name']}...")
-        results.append(grade_student(student, workdir, args.starter_commit))
+        results.append(grade_student(student, workdir, args.starter_commit, args.lab_path))
 
     write_report(Path(args.report), results)
     print(f"\nWrote report: {args.report}")
