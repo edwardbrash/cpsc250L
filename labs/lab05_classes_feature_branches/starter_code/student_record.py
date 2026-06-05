@@ -11,6 +11,7 @@ class StudentRecord:
         Parameters:
             name: student name as a string
             student_id: student ID as a string
+            scores[]: scores as a list (empty by default)
         """
         pass
 
