@@ -21,7 +21,7 @@ This grader checks the automatable parts of the StudentRecord lab:
   - letter_grade() uses the expected scale
   - __str__() returns a readable student summary
   - main.py runs from the terminal
-  - Git history shows commit evidence
+  - Git history shows commits touching the Lab 5 folder
   - working tree is clean
 
 Expected students.csv format:
@@ -39,13 +39,11 @@ python grade_lab05.py \
   --workdir student_repos \
   --report reports/lab05_report.csv
 
-With known Lab 5 starter commit:
+The commit check uses the folder-per-lab approach by default:
 
-python grade_lab05.py \
-  --students students.csv \
-  --workdir student_repos \
-  --report reports/lab05_report.csv \
-  --starter-commit LAB5_STARTER_COMMIT_HASH
+  git rev-list --count HEAD -- lab05
+
+If your Lab 5 folder has a different name, use --lab-path.
 """
 
 from __future__ import annotations
@@ -382,17 +380,21 @@ def main_output_readable(output: str) -> Tuple[bool, str]:
     lowered = output.lower()
     notes = []
 
+    # The accepted Lab 5 output may simply print each StudentRecord object.
+    # We therefore look for evidence that the three sample students were printed
+    # and that the __str__ output is not still the template "dummy string".
     for name in ["alice", "ben", "carlos"]:
         if name not in lowered:
             notes.append(f"Missing {name} in main output")
 
-    for clue in ["87", "76", "93"]:
-        if clue not in output:
-            notes.append(f"Missing average/value clue {clue}")
+    for student_id in ["a001", "b002", "c003"]:
+        if student_id not in lowered:
+            notes.append(f"Missing student id clue {student_id}")
 
-    for grade in ["A", "C"]:
-        if grade not in output:
-            notes.append(f"Missing letter grade clue {grade}")
+    # These values appear in the sample objects' score lists.
+    for clue in ["85", "90", "88", "72", "78", "80", "91", "95", "94"]:
+        if clue not in output:
+            notes.append(f"Missing score clue {clue}")
 
     if "dummy string" in lowered:
         notes.append("Output still contains dummy string")
@@ -404,12 +406,17 @@ def main_output_readable(output: str) -> Tuple[bool, str]:
     return len(notes) == 0, "; ".join(notes)
 
 
-def count_commits_since_starter(repo_dir: Path, starter_commit: Optional[str]) -> Tuple[Optional[int], str]:
-    if not starter_commit:
-        return None, "starter commit not provided"
+def count_commits_touching_path(repo_dir: Path, lab_path: Path) -> Tuple[Optional[int], str]:
+    """
+    Count commits that touched files under lab_path.
 
+    This is better than total repo commits for this course because each lab lives
+    in its own folder. A student who has completed Labs 1-4 but has not touched
+    Lab 5 should receive zero Lab 5 commit credit.
+    """
+    path_arg = str(lab_path.as_posix())
     code, out, err = run_command(
-        ["git", "rev-list", "--count", f"{starter_commit}..HEAD"],
+        ["git", "rev-list", "--count", "HEAD", "--", path_arg],
         cwd=repo_dir,
     )
 
@@ -422,15 +429,13 @@ def count_commits_since_starter(repo_dir: Path, starter_commit: Optional[str]) -
         return None, f"could not parse commit count: {out}"
 
 
-def get_total_commit_count(repo_dir: Path) -> Tuple[Optional[int], str]:
-    code, out, err = run_command(["git", "rev-list", "--count", "HEAD"], cwd=repo_dir)
-    if code != 0:
-        return None, err or out
-
-    try:
-        return int(out), "ok"
-    except ValueError:
-        return None, f"could not parse commit count: {out}"
+def get_recent_commits_touching_path(repo_dir: Path, lab_path: Path, n: int = 10) -> str:
+    path_arg = str(lab_path.as_posix())
+    code, out, err = run_command(
+        ["git", "log", "--oneline", f"-{n}", "--", path_arg],
+        cwd=repo_dir,
+    )
+    return out if code == 0 else err
 
 
 def get_recent_commits(repo_dir: Path, n: int = 10) -> str:
@@ -454,7 +459,7 @@ def is_working_tree_clean(repo_dir: Path) -> Tuple[bool, str]:
     return False, out.replace("\n", " | ")
 
 
-def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[str]) -> Dict[str, str]:
+def grade_student(row: Dict[str, str], workdir: Path, lab_path_arg: str, min_lab_commits: int) -> Dict[str, str]:
     name = row["name"].strip()
     username = row["github_username"].strip()
     repo_url = row["repo_url"].strip()
@@ -489,16 +494,17 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
         "main_runs_from_terminal": "no",
         "main_output_readable": "no",
         "main_output": "",
-        "commits_after_starter": "",
+        "lab_path_checked": "",
+        "commits_touching_lab": "",
         "meaningful_commit_evidence": "no",
         "commit_check_method": "",
+        "recent_lab_commits": "",
         "working_tree_clean": "no",
         "recent_commits": "",
         "branch_info": "",
-        "auto_score_out_of_18": "0",
-        "manual_feature_branch_review_out_of_2": "",
-        "total_score_out_of_20": "",
-        "notes": "",
+        "auto_score_out_of_21": "0",
+        "manual_feature_branch_review_notes": "",
+                "notes": "",
     }
 
     ok, message = clone_or_update_repo(repo_url, repo_dir)
@@ -507,10 +513,47 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
         result["notes"] = message
         return result
 
-    score = 1
+    score = 0
 
     main_path = find_file(repo_dir, "main.py")
     record_path = find_file(repo_dir, "student_record.py")
+
+    # Determine which lab path to use for the Git commit check.
+    # By default this is lab05, but --lab-path can override it.
+    if lab_path_arg:
+        lab_path_for_commits = Path(lab_path_arg)
+    elif record_path:
+        lab_path_for_commits = record_path.parent.relative_to(repo_dir)
+    elif main_path:
+        lab_path_for_commits = main_path.parent.relative_to(repo_dir)
+    else:
+        lab_path_for_commits = Path("lab05")
+
+    if str(lab_path_for_commits) == ".":
+        lab_path_for_commits = Path(".")
+
+    result["lab_path_checked"] = str(lab_path_for_commits)
+
+    # If neither Lab 5 file exists, this is not a submitted Lab 5 attempt.
+    # Do not award generic repo-level points such as clone/update, commit history,
+    # or clean working tree. Those are useful diagnostics, but not Lab 5 credit.
+    if not main_path and not record_path:
+        result["notes"] += "No Lab 5 files found; no Lab 5 credit awarded. "
+        lab_commit_count, lab_commit_note = count_commits_touching_path(repo_dir, lab_path_for_commits)
+        if lab_commit_count is not None:
+            result["commits_touching_lab"] = str(lab_commit_count)
+        else:
+            result["notes"] += f"Lab commit check failed: {lab_commit_note}. "
+        result["commit_check_method"] = f"commits touching {lab_path_for_commits}"
+        result["recent_lab_commits"] = get_recent_commits_touching_path(repo_dir, lab_path_for_commits).replace("\n", " | ")[:900]
+        result["recent_commits"] = get_recent_commits(repo_dir).replace("\n", " | ")[:900]
+        result["branch_info"] = get_branch_info(repo_dir).replace("\n", " | ")[:900]
+        result["auto_score_out_of_21"] = str(score)
+        return result
+
+    # At least one Lab 5 file exists, so the repo was reachable and contains
+    # something that appears to be a Lab 5 submission.
+    score += 1
 
     if main_path:
         result["main_exists"] = "yes"
@@ -585,29 +628,22 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
         else:
             result["notes"] += "main.py did not run successfully from terminal. "
 
-    commits_after, commit_note = count_commits_since_starter(repo_dir, starter_commit)
-    if starter_commit:
-        result["commit_check_method"] = f"commits after starter commit {starter_commit}"
-        if commits_after is not None:
-            result["commits_after_starter"] = str(commits_after)
-            if commits_after >= 2:
-                result["meaningful_commit_evidence"] = "yes"
-                score += 1
-            else:
-                result["notes"] += f"Expected at least 2 commits after starter commit, got {commits_after}. "
+    lab_commit_count, lab_commit_note = count_commits_touching_path(repo_dir, lab_path_for_commits)
+    result["commit_check_method"] = f"commits touching {lab_path_for_commits}"
+    if lab_commit_count is not None:
+        result["commits_touching_lab"] = str(lab_commit_count)
+        if lab_commit_count >= min_lab_commits:
+            result["meaningful_commit_evidence"] = "yes"
+            score += 1
         else:
-            result["notes"] += f"Commit check failed: {commit_note}. "
+            result["notes"] += (
+                f"Expected at least {min_lab_commits} commits touching {lab_path_for_commits}, "
+                f"got {lab_commit_count}. "
+            )
     else:
-        result["commit_check_method"] = "fallback: total commits in repo"
-        total_commits, total_note = get_total_commit_count(repo_dir)
-        if total_commits is not None:
-            if total_commits >= 2:
-                result["meaningful_commit_evidence"] = "yes"
-                score += 1
-            else:
-                result["notes"] += f"Starter commit not provided; total repo commits is only {total_commits}. "
-        else:
-            result["notes"] += f"Starter commit not provided; total commit fallback failed: {total_note}. "
+        result["notes"] += f"Lab commit check failed: {lab_commit_note}. "
+
+    result["recent_lab_commits"] = get_recent_commits_touching_path(repo_dir, lab_path_for_commits).replace("\n", " | ")[:900]
 
     clean, clean_note = is_working_tree_clean(repo_dir)
     result["working_tree_clean"] = "yes" if clean else "no"
@@ -618,7 +654,7 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
 
     result["recent_commits"] = get_recent_commits(repo_dir).replace("\n", " | ")[:900]
     result["branch_info"] = get_branch_info(repo_dir).replace("\n", " | ")[:900]
-    result["auto_score_out_of_18"] = str(score)
+    result["auto_score_out_of_21"] = str(score)
     return result
 
 
@@ -668,15 +704,16 @@ def write_report(path: Path, rows: List[Dict[str, str]]) -> None:
         "main_runs_from_terminal",
         "main_output_readable",
         "main_output",
-        "commits_after_starter",
+        "lab_path_checked",
+        "commits_touching_lab",
         "meaningful_commit_evidence",
         "commit_check_method",
+        "recent_lab_commits",
         "working_tree_clean",
         "recent_commits",
         "branch_info",
-        "auto_score_out_of_18",
-        "manual_feature_branch_review_out_of_2",
-        "total_score_out_of_20",
+        "auto_score_out_of_21",
+        "manual_feature_branch_review_notes",
         "notes",
     ]
 
@@ -693,9 +730,15 @@ def main() -> int:
     parser.add_argument("--workdir", default="student_repos", help="Folder where repos are cloned")
     parser.add_argument("--report", default="reports/lab05_report.csv", help="Output CSV report path")
     parser.add_argument(
-        "--starter-commit",
-        default=None,
-        help="Optional Lab 5 starter commit hash from the instructor repo",
+        "--lab-path",
+        default="lab05",
+        help="Path to the Lab 5 folder inside each student repo. Defaults to lab05.",
+    )
+    parser.add_argument(
+        "--min-lab-commits",
+        type=int,
+        default=2,
+        help="Minimum number of commits touching the Lab 5 folder required for commit credit.",
     )
     parser.add_argument(
         "--exclude-test",
@@ -715,7 +758,7 @@ def main() -> int:
 
     for student in students:
         print(f"Grading {student['name']}...")
-        results.append(grade_student(student, workdir, args.starter_commit))
+        results.append(grade_student(student, workdir, args.lab_path, args.min_lab_commits))
 
     write_report(report_path, results)
     print(f"\nWrote report: {report_path}")
