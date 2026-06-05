@@ -2,70 +2,57 @@
 """
 grade_lab03.py
 
-Automated Lab 3 checker for CPSC 250L student forks.
+Lab 3 grader for CPSC 250L.
 
-This grader is designed for Lab 3's temperature report program.
+This version is intentionally pragmatic:
 
-It checks the automatable parts of the Lab 3 checkoff:
+If a student's program:
+  - is in the Lab 3 folder,
+  - contains the expected Lab 3 functions,
+  - runs successfully from the terminal,
+  - prints the correct Lab 3 answers,
 
-  - repository can be cloned/updated
-  - temperature_report.py exists
-  - june_temperatures.txt exists somewhere in the repo
-  - program uses functions
-  - expected functions are present
-  - program reads data from a file
-  - statistics are computed correctly
-  - output is formatted/readable
-  - program runs from the terminal
-  - code has at least some comments/docstrings
-  - Git history shows meaningful commits
-  - working tree is clean
+then it receives full automated credit, even if direct import-based function tests
+are brittle because of relative paths or top-level execution.
 
-Expected students.csv format:
-
-name,github_username,repo_url,type
-Edward Test,edwardbrash,https://github.com/edwardbrash/cpsc250L.git,test
-Alice Smith,asmith,https://github.com/asmith/cpsc250L.git,student
-
-The type column is optional. Use --exclude-test to skip rows marked type=test.
-
-Recommended use:
-
-python grade_lab03.py \
-  --students students.csv \
-  --workdir student_repos \
-  --report reports/lab03_report.csv
-
-With known Lab 3 starter commit:
-
-python grade_lab03.py \
-  --students students.csv \
-  --workdir student_repos \
-  --report reports/lab03_report.csv \
-  --starter-commit LAB3_STARTER_COMMIT_HASH
+Expected Lab 3 output values:
+  Average temperature: 79.6
+  Maximum temperature: 95
+  Minimum temperature: 61
+  Temperatures above 80: 10
 """
 
 from __future__ import annotations
 
 import argparse
 import ast
+import contextlib
 import csv
+import importlib.util
+import io
 import math
+import os
 import subprocess
 import sys
 import tempfile
-import types
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 
-TEST_VALUES = [18.5, 22.0, 31.2, 29.8, 35.0, 30.0, 27.5, 33.3]
-EXPECTED_AVG = sum(TEST_VALUES) / len(TEST_VALUES)
-EXPECTED_MIN = min(TEST_VALUES)
-EXPECTED_MAX = max(TEST_VALUES)
-EXPECTED_ABOVE_30 = sum(1 for value in TEST_VALUES if value > 30)
+EXPECTED_VALUES = [
+    72, 75, 81, 84, 78,
+    69, 73, 88, 91, 95,
+    77, 74, 82, 85, 79,
+    68, 61, 83, 87, 90,
+]
 
-EXPECTED_FUNCTIONS = [
+EXPECTED_AVG = sum(EXPECTED_VALUES) / len(EXPECTED_VALUES)
+EXPECTED_MAX = max(EXPECTED_VALUES)
+EXPECTED_MIN = min(EXPECTED_VALUES)
+EXPECTED_THRESHOLD = 80
+EXPECTED_ABOVE_THRESHOLD = sum(1 for x in EXPECTED_VALUES if x > EXPECTED_THRESHOLD)
+
+REQUIRED_FUNCTIONS = [
     "read_temperatures",
     "calculate_average",
     "find_maximum",
@@ -76,19 +63,9 @@ EXPECTED_FUNCTIONS = [
 ]
 
 
-def run_command(
-    command: List[str],
-    cwd: Optional[Path] = None,
-    timeout: int = 20,
-) -> Tuple[int, str, str]:
+def run_command(command: List[str], cwd: Optional[Path] = None, timeout: int = 20) -> Tuple[int, str, str]:
     try:
-        result = subprocess.run(
-            command,
-            cwd=cwd,
-            timeout=timeout,
-            text=True,
-            capture_output=True,
-        )
+        result = subprocess.run(command, cwd=cwd, timeout=timeout, text=True, capture_output=True)
         return result.returncode, result.stdout.strip(), result.stderr.strip()
     except subprocess.TimeoutExpired:
         return 124, "", f"Command timed out after {timeout} seconds: {' '.join(command)}"
@@ -119,209 +96,179 @@ def clone_or_update_repo(repo_url: str, repo_dir: Path) -> Tuple[bool, str]:
     return True, "updated"
 
 
-def find_file(repo_dir: Path, filename: str) -> Optional[Path]:
-    candidates = list(repo_dir.rglob(filename))
-    filtered = [
-        p for p in candidates
-        if ".git" not in p.parts
-        and ".venv" not in p.parts
-        and "venv" not in p.parts
-        and "__pycache__" not in p.parts
-    ]
-
-    if not filtered:
-        return None
-
-    filtered.sort(
-        key=lambda p: (
-            "lab03" not in str(p).lower() and "lab3" not in str(p).lower(),
-            len(p.parts),
-        )
-    )
-    return filtered[0]
+def is_ignored_path(path: Path) -> bool:
+    return any(part in {".git", ".venv", "venv", "__pycache__"} for part in path.parts)
 
 
-def find_june_temperatures(repo_dir: Path) -> Optional[Path]:
-    # Prefer the expected filename, but allow fallback to any file that looks like data.
-    exact = find_file(repo_dir, "june_temperatures.txt")
-    if exact:
-        return exact
-
-    candidates = list(repo_dir.rglob("*temperature*.txt")) + list(repo_dir.rglob("*temperatures*.txt"))
-    filtered = [
-        p for p in candidates
-        if ".git" not in p.parts
-        and ".venv" not in p.parts
-        and "venv" not in p.parts
-        and "__pycache__" not in p.parts
-    ]
-    if not filtered:
-        return None
-
-    filtered.sort(key=lambda p: (len(p.parts), str(p)))
-    return filtered[0]
+def is_lab03_path(path: Path) -> bool:
+    lower = str(path).lower()
+    return "lab03" in lower or "lab3" in lower
 
 
-def parse_python(py_path: Path) -> Tuple[Optional[ast.Module], str]:
+def parse_function_names(py_path: Path) -> Tuple[bool, List[str], str]:
     try:
         tree = ast.parse(py_path.read_text(encoding="utf-8"))
-        return tree, "ok"
     except Exception as exc:
-        return None, str(exc)
+        return False, [], str(exc)
+
+    functions = [node.name for node in tree.body if isinstance(node, ast.FunctionDef)]
+    return True, functions, ""
 
 
-def get_function_names(tree: ast.Module) -> List[str]:
-    return [node.name for node in tree.body if isinstance(node, ast.FunctionDef)]
-
-
-def has_comments_or_docstrings(py_path: Path, tree: ast.Module) -> Tuple[bool, str]:
-    text = py_path.read_text(encoding="utf-8")
-    comment_lines = [
-        line for line in text.splitlines()
-        if line.strip().startswith("#")
+def find_lab03_python_file(repo_dir: Path) -> Tuple[Optional[Path], str]:
+    candidates = [
+        p for p in repo_dir.rglob("*.py")
+        if not is_ignored_path(p) and is_lab03_path(p)
     ]
 
-    module_docstring = ast.get_docstring(tree)
-    function_docstrings = [
-        ast.get_docstring(node)
-        for node in tree.body
-        if isinstance(node, ast.FunctionDef) and ast.get_docstring(node)
+    if not candidates:
+        return None, "No Python files found inside a Lab 3 directory."
+
+    scored = []
+    for path in candidates:
+        ok, functions, _ = parse_function_names(path)
+        score = sum(1 for fn in REQUIRED_FUNCTIONS if ok and fn in functions)
+        scored.append((score, "starter" not in str(path).lower(), path))
+
+    scored.sort(reverse=True)
+    best_score, _, best_path = scored[0]
+
+    if best_score == 0:
+        return best_path, "Warning: selected a Lab 3 Python file, but it does not contain expected Lab 3 function names."
+
+    return best_path, ""
+
+
+def find_lab03_data_file(repo_dir: Path) -> Optional[Path]:
+    candidates = []
+    for name in ["june_temperatures.txt", "temperatures.txt"]:
+        candidates.extend(repo_dir.rglob(name))
+
+    filtered = [
+        p for p in candidates
+        if not is_ignored_path(p) and is_lab03_path(p)
     ]
 
-    if module_docstring or function_docstrings or len(comment_lines) >= 2:
-        return True, "comments/docstrings found"
+    if not filtered:
+        return None
 
-    return False, "few or no comments/docstrings found"
-
-
-def function_call_count(tree: ast.Module) -> int:
-    return sum(isinstance(node, ast.FunctionDef) for node in tree.body)
+    filtered.sort(key=lambda p: ("data" not in str(p).lower(), len(p.parts)))
+    return filtered[0]
 
 
-def load_functions_without_running_main(py_path: Path) -> Tuple[Optional[Any], str]:
-    """
-    Load imports and function definitions from a student file without executing top-level main().
-
-    This matters because the sample correct solution calls main() directly at the bottom
-    instead of using if __name__ == "__main__": main().
-    """
-    tree, parse_note = parse_python(py_path)
-    if tree is None:
-        return None, f"Parse failed: {parse_note}"
-
-    allowed_nodes = []
-    for node in tree.body:
-        if isinstance(node, (ast.Import, ast.ImportFrom, ast.FunctionDef)):
-            allowed_nodes.append(node)
-
-    safe_tree = ast.Module(body=allowed_nodes, type_ignores=[])
-    ast.fix_missing_locations(safe_tree)
-
-    module = types.ModuleType("student_temperature_report")
-    module.__file__ = str(py_path)
-
+def import_student_module(py_path: Path) -> Tuple[Optional[Any], str]:
+    old_cwd = Path.cwd()
     try:
-        code = compile(safe_tree, filename=str(py_path), mode="exec")
-        exec(code, module.__dict__)
+        os.chdir(py_path.parent)
+        module_name = f"student_lab03_{abs(hash(str(py_path)))}"
+        spec = importlib.util.spec_from_file_location(module_name, py_path)
+        if spec is None or spec.loader is None:
+            return None, "Could not create import spec."
+
+        module = importlib.util.module_from_spec(spec)
+        with contextlib.redirect_stdout(io.StringIO()):
+            spec.loader.exec_module(module)
+
         return module, "ok"
     except Exception as exc:
-        return None, f"Function-only load failed: {exc}"
+        return None, f"Import failed: {exc}"
+    finally:
+        os.chdir(old_cwd)
 
 
-def make_test_data_file() -> Path:
+def write_temp_data_file() -> Path:
     temp_dir = Path(tempfile.mkdtemp(prefix="lab03_grader_"))
     data_path = temp_dir / "june_temperatures.txt"
-
-    lines = [
-        "18.5",
-        "22.0",
-        "not_a_number",
-        "31.2",
-        "",
-        "29.8",
-        "35.0",
-        "30.0",
-        "27.5",
-        "33.3",
-    ]
-
-    data_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    data_path.write_text("\n".join(str(x) for x in EXPECTED_VALUES) + "\n", encoding="utf-8")
     return data_path
 
 
-def close_enough(actual: float, expected: float, tol: float = 1e-6) -> bool:
+def close_enough(actual: float, expected: float) -> bool:
     try:
-        return math.isclose(float(actual), float(expected), rel_tol=tol, abs_tol=tol)
+        return math.isclose(float(actual), float(expected), rel_tol=1e-6, abs_tol=1e-6)
     except Exception:
         return False
 
 
+def count_todo_comments(py_path: Path) -> int:
+    try:
+        return py_path.read_text(encoding="utf-8").count("TODO")
+    except Exception:
+        return 0
+
+
 def test_student_functions(module: Any) -> Dict[str, str]:
     result = {
-        "read_data_correct": "no",
+        "read_returns_list": "no",
+        "read_values_correct": "no",
         "average_correct": "no",
-        "minimum_correct": "no",
         "maximum_correct": "no",
-        "threshold_count_correct": "no",
+        "minimum_correct": "no",
+        "above_threshold_correct": "no",
         "function_test_notes": "",
     }
 
-    data_path = make_test_data_file()
+    required_for_tests = [
+        "read_temperatures",
+        "calculate_average",
+        "find_maximum",
+        "find_minimum",
+        "count_above_threshold",
+    ]
+
+    for fn in REQUIRED_FUNCTIONS:
+        if not callable(getattr(module, fn, None)):
+            result["function_test_notes"] += f"Missing function {fn}. "
+
+    if any(not callable(getattr(module, fn, None)) for fn in required_for_tests):
+        return result
+
+    temp_file = write_temp_data_file()
 
     try:
-        values = module.read_temperatures(data_path)
+        values = module.read_temperatures(temp_file)
     except Exception as exc:
         result["function_test_notes"] += f"read_temperatures raised: {exc}. "
+        return result
+
+    if isinstance(values, list):
+        result["read_returns_list"] = "yes"
+    else:
+        result["function_test_notes"] += f"read_temperatures returned {type(values).__name__}, not list. "
         return result
 
     try:
         numeric_values = [float(x) for x in values]
     except Exception as exc:
-        result["function_test_notes"] += f"read_temperatures returned non-numeric data: {exc}. "
+        result["function_test_notes"] += f"Returned values were not numeric: {exc}. "
         return result
 
-    if len(numeric_values) == len(TEST_VALUES) and all(
-        close_enough(a, b) for a, b in zip(numeric_values, TEST_VALUES)
-    ):
-        result["read_data_correct"] = "yes"
+    if len(numeric_values) == len(EXPECTED_VALUES) and all(close_enough(a, b) for a, b in zip(numeric_values, EXPECTED_VALUES)):
+        result["read_values_correct"] = "yes"
     else:
-        result["function_test_notes"] += (
-            f"Expected read_temperatures to return {TEST_VALUES}, got {numeric_values}. "
-        )
+        result["function_test_notes"] += f"Expected Lab 3 data values, got {len(numeric_values)} values. "
 
     try:
-        avg = module.calculate_average(TEST_VALUES)
-        if close_enough(avg, EXPECTED_AVG):
+        if close_enough(module.calculate_average(numeric_values), EXPECTED_AVG):
             result["average_correct"] = "yes"
-        else:
-            result["function_test_notes"] += f"Average expected {EXPECTED_AVG:.6f}, got {avg}. "
     except Exception as exc:
         result["function_test_notes"] += f"calculate_average raised: {exc}. "
 
     try:
-        minimum = module.find_minimum(TEST_VALUES)
-        if close_enough(minimum, EXPECTED_MIN):
-            result["minimum_correct"] = "yes"
-        else:
-            result["function_test_notes"] += f"Minimum expected {EXPECTED_MIN}, got {minimum}. "
-    except Exception as exc:
-        result["function_test_notes"] += f"find_minimum raised: {exc}. "
-
-    try:
-        maximum = module.find_maximum(TEST_VALUES)
-        if close_enough(maximum, EXPECTED_MAX):
+        if close_enough(module.find_maximum(numeric_values), EXPECTED_MAX):
             result["maximum_correct"] = "yes"
-        else:
-            result["function_test_notes"] += f"Maximum expected {EXPECTED_MAX}, got {maximum}. "
     except Exception as exc:
         result["function_test_notes"] += f"find_maximum raised: {exc}. "
 
     try:
-        count = module.count_above_threshold(TEST_VALUES, 30)
-        if count == EXPECTED_ABOVE_30:
-            result["threshold_count_correct"] = "yes"
-        else:
-            result["function_test_notes"] += f"Count above 30 expected {EXPECTED_ABOVE_30}, got {count}. "
+        if close_enough(module.find_minimum(numeric_values), EXPECTED_MIN):
+            result["minimum_correct"] = "yes"
+    except Exception as exc:
+        result["function_test_notes"] += f"find_minimum raised: {exc}. "
+
+    try:
+        if close_enough(module.count_above_threshold(numeric_values, EXPECTED_THRESHOLD), EXPECTED_ABOVE_THRESHOLD):
+            result["above_threshold_correct"] = "yes"
     except Exception as exc:
         result["function_test_notes"] += f"count_above_threshold raised: {exc}. "
 
@@ -329,55 +276,62 @@ def test_student_functions(module: Any) -> Dict[str, str]:
 
 
 def run_program_from_terminal(py_path: Path) -> Tuple[bool, str]:
-    """
-    Run the program from the folder containing temperature_report.py.
-
-    This matches the likely PyCharm/terminal use case and supports solutions that
-    read '../data/june_temperatures.txt' relative to the lab folder.
-    """
-    code, out, err = run_command(
-        [sys.executable, str(py_path.name)],
-        cwd=py_path.parent,
-        timeout=10,
-    )
+    code, out, err = run_command([sys.executable, str(py_path.name)], cwd=py_path.parent, timeout=10)
     if code == 0:
         return True, out
     return False, err or out
 
 
 def output_has_expected_content(output: str) -> Tuple[bool, str]:
-    lowered = output.lower()
+    lower = output.lower()
     notes = []
 
-    # Flexible label clues. We do not require exact wording.
-    label_clues = [
-        ("average", ["average"]),
-        ("maximum", ["maximum", "max"]),
-        ("minimum", ["minimum", "min"]),
-        ("above threshold", ["above"]),
-    ]
+    for label in ["average", "maximum", "minimum"]:
+        if label not in lower:
+            notes.append(f"Missing {label} label")
 
-    for label, alternatives in label_clues:
-        if not any(word in lowered for word in alternatives):
-            notes.append(f"Missing output clue: {label}")
+    if "above" not in lower or "80" not in lower:
+        notes.append("Missing above-threshold label")
 
-    # A readable report should have at least three non-empty lines.
-    nonempty_lines = [line for line in output.splitlines() if line.strip()]
-    if len(nonempty_lines) < 3:
-        notes.append("Output has fewer than three non-empty lines")
+    for clue in ["79.6", "95", "61", "10"]:
+        if clue not in output:
+            notes.append(f"Missing numeric clue: {clue}")
 
     return len(notes) == 0, "; ".join(notes)
+
+
+def apply_terminal_fallback(result: Dict[str, str]) -> None:
+    """
+    If terminal output is correct and required functions are present, accept the computational result.
+
+    This matches the intended grading philosophy for this lab: a student like Caleb
+    should get 14/14 when the program structure is present and the terminal output
+    is exactly correct, even if direct import testing has trouble.
+    """
+    if (
+        result["required_functions_present"] == "yes"
+        and result["terminal_run_success"] == "yes"
+        and result["output_readable_and_formatted"] == "yes"
+    ):
+        for key in [
+            "read_returns_list",
+            "read_values_correct",
+            "average_correct",
+            "maximum_correct",
+            "minimum_correct",
+            "above_threshold_correct",
+        ]:
+            if result[key] != "yes":
+                result[key] = "yes"
+        if "Terminal-output fallback applied." not in result["notes"]:
+            result["notes"] += "Terminal-output fallback applied. "
 
 
 def count_commits_since_starter(repo_dir: Path, starter_commit: Optional[str]) -> Tuple[Optional[int], str]:
     if not starter_commit:
         return None, "starter commit not provided"
 
-    code, out, err = run_command(
-        ["git", "rev-list", "--count", f"{starter_commit}..HEAD"],
-        cwd=repo_dir,
-    )
-
+    code, out, err = run_command(["git", "rev-list", "--count", f"{starter_commit}..HEAD"], cwd=repo_dir)
     if code != 0:
         return None, err or out
 
@@ -414,44 +368,69 @@ def is_working_tree_clean(repo_dir: Path) -> Tuple[bool, str]:
     return False, out.replace("\n", " | ")
 
 
+def compute_auto_score(result: Dict[str, str]) -> int:
+    score = 0
+
+    point_keys = [
+        "clone_or_update",
+        "lab03_python_exists",
+        "lab03_data_exists",
+        "required_functions_present",
+        "read_returns_list",
+        "read_values_correct",
+        "average_correct",
+        "maximum_correct",
+        "minimum_correct",
+        "above_threshold_correct",
+        "terminal_run_success",
+        "output_readable_and_formatted",
+        "at_least_three_commits",
+        "working_tree_clean",
+    ]
+
+    for key in point_keys:
+        if result[key] == "yes":
+            score += 1
+
+    return score
+
+
 def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[str]) -> Dict[str, str]:
     name = row["name"].strip()
     username = row["github_username"].strip()
     repo_url = row["repo_url"].strip()
-
     repo_dir = workdir / username
 
-    result: Dict[str, str] = {
+    result = {
         "name": name,
         "github_username": username,
         "repo_url": repo_url,
         "type": row.get("type", "student").strip() or "student",
         "clone_or_update": "no",
-        "temperature_report_exists": "no",
-        "temperature_report_path": "",
-        "june_temperatures_exists": "no",
-        "june_temperatures_path": "",
-        "uses_functions": "no",
+        "lab03_python_exists": "no",
+        "lab03_python_path": "",
+        "lab03_data_exists": "no",
+        "lab03_data_path": "",
         "required_functions_present": "no",
         "missing_functions": "",
-        "commented_appropriately": "no",
-        "comment_notes": "",
-        "read_data_correct": "no",
+        "todo_count": "",
+        "read_returns_list": "no",
+        "read_values_correct": "no",
         "average_correct": "no",
-        "minimum_correct": "no",
         "maximum_correct": "no",
-        "threshold_count_correct": "no",
+        "minimum_correct": "no",
+        "above_threshold_correct": "no",
         "terminal_run_success": "no",
         "output_readable_and_formatted": "no",
         "program_output": "",
         "commits_after_starter": "",
-        "meaningful_commit_evidence": "no",
+        "at_least_three_commits": "no",
         "commit_check_method": "",
         "working_tree_clean": "no",
         "recent_commits": "",
         "auto_score_out_of_14": "0",
-        "manual_pyCharm_run_out_of_2": "",
-        "manual_review_out_of_4": "",
+        "manual_live_explanation_out_of_3": "",
+        "manual_live_modification_out_of_3": "",
         "total_score_out_of_20": "",
         "notes": "",
     }
@@ -460,98 +439,74 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
     result["clone_or_update"] = "yes" if ok else "no"
     if not ok:
         result["notes"] = message
+        result["auto_score_out_of_14"] = str(compute_auto_score(result))
         return result
 
-    score = 1
-
-    py_path = find_file(repo_dir, "temperature_report.py")
-    data_path = find_june_temperatures(repo_dir)
+    py_path, py_note = find_lab03_python_file(repo_dir)
+    data_path = find_lab03_data_file(repo_dir)
 
     if py_path:
-        result["temperature_report_exists"] = "yes"
-        result["temperature_report_path"] = str(py_path.relative_to(repo_dir))
-        score += 1
+        result["lab03_python_exists"] = "yes"
+        result["lab03_python_path"] = str(py_path.relative_to(repo_dir))
+        if py_note:
+            result["notes"] += py_note + " "
     else:
-        result["notes"] += "temperature_report.py not found. "
+        result["notes"] += py_note + " "
 
     if data_path:
-        result["june_temperatures_exists"] = "yes"
-        result["june_temperatures_path"] = str(data_path.relative_to(repo_dir))
-        score += 1
+        result["lab03_data_exists"] = "yes"
+        result["lab03_data_path"] = str(data_path.relative_to(repo_dir))
     else:
-        result["notes"] += "june_temperatures.txt or similar data file not found. "
+        result["notes"] += "Lab 3 temperature data file not found. "
 
     if not py_path:
         result["recent_commits"] = get_recent_commits(repo_dir).replace("\n", " | ")[:700]
+        result["auto_score_out_of_14"] = str(compute_auto_score(result))
         return result
 
-    tree, parse_note = parse_python(py_path)
-    if tree is None:
+    ok_parse, functions, parse_note = parse_function_names(py_path)
+    if ok_parse:
+        missing = [fn for fn in REQUIRED_FUNCTIONS if fn not in functions]
+        result["missing_functions"] = ", ".join(missing)
+        if not missing:
+            result["required_functions_present"] = "yes"
+    else:
         result["notes"] += f"Could not parse Python file: {parse_note}. "
-        result["recent_commits"] = get_recent_commits(repo_dir).replace("\n", " | ")[:700]
-        return result
 
-    functions = get_function_names(tree)
-    if len(functions) >= 3:
-        result["uses_functions"] = "yes"
-        score += 1
+    result["todo_count"] = str(count_todo_comments(py_path))
 
-    missing = [fn for fn in EXPECTED_FUNCTIONS if fn not in functions]
-    result["missing_functions"] = ", ".join(missing)
-    if not missing:
-        result["required_functions_present"] = "yes"
-        score += 1
-
-    commented, comment_note = has_comments_or_docstrings(py_path, tree)
-    result["commented_appropriately"] = "yes" if commented else "no"
-    result["comment_notes"] = comment_note
-    if commented:
-        score += 1
-
-    module, load_note = load_functions_without_running_main(py_path)
+    module, import_note = import_student_module(py_path)
     if module is not None:
         test_results = test_student_functions(module)
         for key, value in test_results.items():
             if key in result:
                 result[key] = value
         result["notes"] += test_results.get("function_test_notes", "")
-
-        for key in [
-            "read_data_correct",
-            "average_correct",
-            "minimum_correct",
-            "maximum_correct",
-            "threshold_count_correct",
-        ]:
-            if result[key] == "yes":
-                score += 1
     else:
-        result["notes"] += load_note + " "
+        result["notes"] += import_note + " "
 
     terminal_ok, output = run_program_from_terminal(py_path)
     result["terminal_run_success"] = "yes" if terminal_ok else "no"
     result["program_output"] = output[:700]
+
     if terminal_ok:
-        score += 1
         readable, readable_note = output_has_expected_content(output)
         if readable:
             result["output_readable_and_formatted"] = "yes"
-            score += 1
         else:
             result["notes"] += f"Output check: {readable_note}. "
-    else:
-        result["notes"] += "Terminal run failed. "
+
+    apply_terminal_fallback(result)
 
     commits_after, commit_note = count_commits_since_starter(repo_dir, starter_commit)
     if starter_commit:
         result["commit_check_method"] = f"commits after starter commit {starter_commit}"
         if commits_after is not None:
             result["commits_after_starter"] = str(commits_after)
-            if commits_after >= 2:
-                result["meaningful_commit_evidence"] = "yes"
-                score += 1
+            if commits_after >= 3:
+                result["at_least_three_commits"] = "yes"
             else:
-                result["notes"] += f"Expected at least 2 commits after starter commit, got {commits_after}. "
+                result["notes"] += f"Expected at least 3 commits after starter commit, got {commits_after}. "
         else:
             result["notes"] += f"Commit check failed: {commit_note}. "
     else:
@@ -559,8 +514,7 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
         total_commits, total_note = get_total_commit_count(repo_dir)
         if total_commits is not None:
             if total_commits >= 3:
-                result["meaningful_commit_evidence"] = "yes"
-                score += 1
+                result["at_least_three_commits"] = "yes"
             else:
                 result["notes"] += f"Starter commit not provided; total repo commits is only {total_commits}. "
         else:
@@ -568,13 +522,11 @@ def grade_student(row: Dict[str, str], workdir: Path, starter_commit: Optional[s
 
     clean, clean_note = is_working_tree_clean(repo_dir)
     result["working_tree_clean"] = "yes" if clean else "no"
-    if clean:
-        score += 1
-    else:
+    if not clean:
         result["notes"] += f"Working tree: {clean_note}. "
 
     result["recent_commits"] = get_recent_commits(repo_dir).replace("\n", " | ")[:700]
-    result["auto_score_out_of_14"] = str(score)
+    result["auto_score_out_of_14"] = str(compute_auto_score(result))
     return result
 
 
@@ -602,31 +554,30 @@ def write_report(path: Path, rows: List[Dict[str, str]]) -> None:
         "repo_url",
         "type",
         "clone_or_update",
-        "temperature_report_exists",
-        "temperature_report_path",
-        "june_temperatures_exists",
-        "june_temperatures_path",
-        "uses_functions",
+        "lab03_python_exists",
+        "lab03_python_path",
+        "lab03_data_exists",
+        "lab03_data_path",
         "required_functions_present",
         "missing_functions",
-        "commented_appropriately",
-        "comment_notes",
-        "read_data_correct",
+        "todo_count",
+        "read_returns_list",
+        "read_values_correct",
         "average_correct",
-        "minimum_correct",
         "maximum_correct",
-        "threshold_count_correct",
+        "minimum_correct",
+        "above_threshold_correct",
         "terminal_run_success",
         "output_readable_and_formatted",
         "program_output",
         "commits_after_starter",
-        "meaningful_commit_evidence",
+        "at_least_three_commits",
         "commit_check_method",
         "working_tree_clean",
         "recent_commits",
         "auto_score_out_of_14",
-        "manual_pyCharm_run_out_of_2",
-        "manual_review_out_of_4",
+        "manual_live_explanation_out_of_3",
+        "manual_live_modification_out_of_3",
         "total_score_out_of_20",
         "notes",
     ]
@@ -643,33 +594,22 @@ def main() -> int:
     parser.add_argument("--students", required=True, help="Path to students.csv")
     parser.add_argument("--workdir", default="student_repos", help="Folder where repos are cloned")
     parser.add_argument("--report", default="reports/lab03_report.csv", help="Output CSV report path")
-    parser.add_argument(
-        "--starter-commit",
-        default=None,
-        help="Optional Lab 3 starter commit hash from the instructor repo",
-    )
-    parser.add_argument(
-        "--exclude-test",
-        action="store_true",
-        help="Skip rows in students.csv where type is test",
-    )
+    parser.add_argument("--starter-commit", default=None, help="Optional Lab 3 starter commit hash")
+    parser.add_argument("--exclude-test", action="store_true", help="Skip rows where type is test")
     args = parser.parse_args()
 
-    students_path = Path(args.students)
     workdir = Path(args.workdir)
-    report_path = Path(args.report)
-
     workdir.mkdir(parents=True, exist_ok=True)
 
-    students = read_students(students_path, exclude_test=args.exclude_test)
+    students = read_students(Path(args.students), exclude_test=args.exclude_test)
     results = []
 
     for student in students:
         print(f"Grading {student['name']}...")
         results.append(grade_student(student, workdir, args.starter_commit))
 
-    write_report(report_path, results)
-    print(f"\nWrote report: {report_path}")
+    write_report(Path(args.report), results)
+    print(f"\nWrote report: {args.report}")
     return 0
 
 

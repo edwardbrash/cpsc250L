@@ -3,6 +3,7 @@
 # Complete this program so that it reads quiz score data from a CSV file,
 # cleans the data, computes student averages, and prints a report.
 
+import csv
 
 def clean_score(score_text):
     """
@@ -10,7 +11,10 @@ def clean_score(score_text):
 
     If the score is missing or invalid, return None.
     """
-    pass
+    if score_text.isdigit():
+        return int(score_text)
+    else:
+        return None
 
 
 def calculate_average(scores):
@@ -19,7 +23,16 @@ def calculate_average(scores):
 
     If the list is empty, return None.
     """
-    pass
+    sum = 0
+    count = 0
+    for score in scores:
+        if score is not None:
+            sum += score
+            count += 1
+    if count > 0:
+        return sum / count
+    else:
+        return None
 
 
 def read_scores(filename):
@@ -48,8 +61,23 @@ def read_scores(filename):
         ...
     ]
     """
-    pass
+    my_list = []
 
+    with open(filename) as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            # ignore first row
+            if reader.line_num == 1:
+                continue
+            else:
+                # convert this line into a dictionay
+                name = row[0]
+                scores = [clean_score(row[1]),clean_score(row[2]),clean_score(row[3])]
+                average = calculate_average(scores)
+                my_dictionary = {"name": name, "scores": scores, "average": average}
+                my_list.append(my_dictionary)
+
+    return my_list
 
 def letter_grade(average):
     """
@@ -90,6 +118,7 @@ def print_class_summary(records):
 def main():
     filename = "../data/quiz_scores.csv"
 
+    # list object returned by read_scores()
     records = read_scores(filename)
 
     print_student_report(records)

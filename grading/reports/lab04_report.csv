@@ -13,8 +13,50 @@ Jackson Davis: Average = 55.00 Grade = F
 Number of students: 10
 Class average: 80.42
 Highest average: 93.33
-Lowest average: 55.00",,yes,fallback: total commits in repo,yes,44b6708 Merge remote-tracking branch 'origin/main' | e39ef29 complete program | 54d88c8 Calculate number of values above threshold | 73be669 Calculate min and max | a3a4382 Read file and calculate average | 4e7d718 lab 1 updates | de20220 lab 1 updates | 51890b4 lab 1 updates | e3e8931 lab 1 updates | eae0e4a lab 1 updates,18,,,
-Justin Shackleford,JustinShackelford23,https://github.com/JustinShackelford23/cpsc250L.git,student,yes,no,,no,,no,,no,no,no,no,no,no,no,no,no,no,no,no,,,no,,no,a2984f3 Fixed threshold calculation | 8ee51ed Finished threshold calculation | 757ed05 Finished Minimum calculation and works | e99bd22 Finished Max calculation and works | 0d9fbbd Merge remote-tracking branch 'origin/main' | 2832a34 Finished Average calculation and Read temperatures | fc941f3 Check | 8573854 Improved outputting formatting | be5c68b Maximum calculation done | c04c932 Minimum and average calc,0,,,student_scores.py not found. quiz_scores.csv not found. 
-Caleb Thompson,Giratinate,https://github.com/Giratinate/cpsc250L.git,student,yes,no,,no,,no,,no,no,no,no,no,no,no,no,no,no,no,no,,,no,,no,d06624c Pushed file. | 7f2dd71 Added comments to code. | 9da1c10 Formatted report. | d1a7af7 Allowed program to find the number of temperatures above a certain threshold. | c55a59c Allowed program to find the maximum and minimum temperatures. | b18f93d Allowed program to read a file. | ed3d7e5 Merge branch 'brash99:main' into main | 0a03370 updates | 7af3353 update current lab | 4606ea5 Merge branch 'main' of github.com:brash99/cpsc250L,0,,,student_scores.py not found. quiz_scores.csv not found. 
-Alexis Barraza,mercyed,https://github.com/mercyed/cpsc250L.git,student,yes,no,,no,,no,,no,no,no,no,no,no,no,no,no,no,no,no,,,no,,no,99ea67f counts above treshhold | ae7161d counts above treshhold | f598716 created working rounding temp calc | c2f677f Merge branch 'brash99:main' into main | 0a03370 updates | 7af3353 update current lab | 4606ea5 Merge branch 'main' of github.com:brash99/cpsc250L | 196ddb1 Add Lab 3 template | 36f9e27 restore template | 6d7210d created working rounding temp calc,0,,,student_scores.py not found. quiz_scores.csv not found. 
-Jayden Poe,poejayden60,https://github.com/poejayden60/poejayden60.git,student,yes,no,,no,,no,,no,no,no,no,no,no,no,no,no,no,no,no,,,no,,no,16dc391 Completed Assignment with comments | 6588bc7 Completed Assignment | dc8c94c Completed find minimum | 638ac6c Completed find maximum | 9c0d936 Merge remote-tracking branch 'origin/main' | 7506c40 Completed read temperatures and average | 137e968 Created working output formatting | 2b3a51c Created working max temp calc | 28c9f87 Created working min temp calc | 5e3f54a Created working read_tempratures funtion,0,,,student_scores.py not found. quiz_scores.csv not found. 
+Lowest average: 55.00",,yes,fallback: total commits in repo,yes,0cbbeab Merge remote-tracking branch 'upstream/main' | 77624ab Merge branch 'main' of https://github.com/edwardbrash/cpsc250L | b2aab72 restore template | da44d9a complete program | 44b6708 Merge remote-tracking branch 'origin/main' | e39ef29 complete program | 54d88c8 Calculate number of values above threshold | 73be669 Calculate min and max | a3a4382 Read file and calculate average | 4e7d718 lab 1 updates,18,,,
+Justin Shackleford,JustinShackelford23,https://github.com/JustinShackelford23/cpsc250L.git,student,yes,yes,labs/lab04_csv_file_processing/starter_code/student_scores.py,yes,labs/lab04_csv_file_processing/data/quiz_scores.csv,yes,,no,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,no,"Alice Johnson: Average = 87.67 Grade = A
+Ben Carter: Average = 76.67 Grade = C
+Carlos Rivera: Average = 93.33 Grade = A
+Dana Lee: Average = 90.00 Grade = A
+Eli Morgan: Average = 72.50 Grade = C
+Fatima Ahmed: Average = 84.00 Grade = B
+Grace Kim: Average = 90.00 Grade = A
+Henry Smith: Average = 65.00 Grade = D
+Isabella Brown: Average = 90.00 Grade = A
+Jackson Davis: Average = 55.00 Grade = F
+
+Number of students: 10
+class average: 80.42
+highest average: 93.33
+lowest average: 55.00",,yes,fallback: total commits in repo,yes,8d3d44a Calculations done with comments | 9decf5d Calculations done comments being made | df3b823 Merge branch 'brash99:main' into main | b2aab72 restore template | 6de715f updates | 5e82026 updates | a2984f3 Fixed threshold calculation | 8ee51ed Finished threshold calculation | 757ed05 Finished Minimum calculation and works | e99bd22 Finished Max calculation and works,16,,,clean_score raised: invalid literal for int() with base 10: '   '. Output check: Missing expected output line: Class average: 80.42; Missing expected output line: Highest average: 93.33; Missing expected output line: Lowest average: 55.00. 
+Caleb Thompson,Giratinate,https://github.com/Giratinate/cpsc250L.git,student,yes,yes,labs/lab04_csv_file_processing/starter_code/student_scores.py,yes,labs/lab04_csv_file_processing/data/quiz_scores.csv,yes,,yes,yes,yes,yes,yes,yes,yes,no,yes,yes,yes,yes,"Alice Johnson: Average = 87.67 Grade = A
+Ben Carter: Average = 76.67 Grade = C
+Carlos Rivera: Average = 93.33 Grade = A
+Dana Lee: Average = 90.00 Grade = A
+Eli Morgan: Average = 72.50 Grade = C
+Fatima Ahmed: Average = 84.00 Grade = B
+Grace Kim: Average = 90.00 Grade = A
+Henry Smith: Average = 65.00 Grade = D
+Isabella Brown: Average = 90.00 Grade = A
+Jackson Davis: Average = 55.00 Grade = F
+
+Number of students: 10
+Class average: 80.42
+Highest average: 93.33
+Lowest average: 55.00",,yes,fallback: total commits in repo,yes,"9392a6d Added commentary. | e5e8fea Finished the Main function and formatted the report. | 4aae44e Completed the read_scores function, program can now read files and return a list of dictionaries. | 978b847 Added the calculate_average function. | d1d8db8 Added the clean_score function. | fdff2f7 Merge branch 'brash99:main' into main | b2aab72 restore template | 6de715f updates | 5e82026 updates | d06624c Pushed file.",17,,,letter_grade raised: '>=' not supported between instances of 'NoneType' and 'int'. 
+Alexis Barraza,mercyed,https://github.com/mercyed/cpsc250L.git,student,yes,yes,labs/lab04_csv_file_processing/starter_code/student_scores.py,yes,labs/lab04_csv_file_processing/data/quiz_scores.csv,yes,,no,no,yes,yes,no,no,no,no,no,yes,no,no,"Alice Johnson: Average = 87.67 Grade = A
+Ben Carter: Average = 76.67 Grade = C
+Carlos Rivera: Average = 93.33 Grade = A
+Dana Lee: Average = 90.0 Grade = A
+Eli Morgan: Average = 72.5 Grade = C
+Fatima Ahmed: Average = 84.0 Grade = B
+Grace Kim: Average = 90.0 Grade = A
+Henry Smith: Average = 65.0 Grade = D
+Isabella Brown: Average = N/A Grade = N/A
+Jackson Davis: Average = 55.0 Grade = F
+
+Number of students: 10
+Class average: 79.35
+Highest average: 93.33
+Lowest average: 55.0",,yes,fallback: total commits in repo,yes,85c6e6e progress so far | 3fbbe15 progress so far | 53b08a8 Merge branch 'brash99:main' into main | b2aab72 restore template | 6de715f updates | 5e82026 updates | 99ea67f counts above treshhold | ae7161d counts above treshhold | f598716 created working rounding temp calc | c2f677f Merge branch 'brash99:main' into main,9,,,"clean_score(' 92 ') expected 92, got None. Isabella Brown valid scores expected [92, 88, 90], got []. Isabella Brown score list expected [92, 88, 90], got [None, None, None]. Isabella Brown average expected 90.000000, got None. Isabella Brown grade expected A, got N/A. Class summary values did not match expected values. Output check: Missing expected output line: Dana Lee: Average = 90.00 Grade = A; Missing expected output line: Eli Morgan: Average = 72.50 Grade = C; Missing expected output line: Fatima Ahmed: Average = 84.00 Grade = B; Missing expected output line: Grace Kim: Average = 90.00 Grade = A; Missing expected output line: Henry Smith: Average = 65.00 Grade = D; Missing expected output line: Isabella Brown: Average = 90.00 Grade = A; Missing expected output line: Jackson Davis: Average = 55.00 Grade = F; Missing expected output line: Class average: 80.42; Missing expected output line: Lowest average: 55.00. "
+Jayden Poe,poejayden60,https://github.com/poejayden60/poejayden60.git,student,yes,yes,labs/lab04_csv_file_processing/starter_code/student_scores.py,yes,labs/lab04_csv_file_processing/data/quiz_scores.csv,yes,,no,no,no,no,no,no,no,no,no,yes,no,no,,,yes,fallback: total commits in repo,yes,3eff447 updates | a011a50 Completed Assignment with comments | 58c7b27 Completed Assignment | f52dd38 Completed find minimum | ef46fd1 Completed find maximum | 06cd457 Created working output formatting | d809fb3 Created working max temp calc | 3682918 Created working min temp calc | 530170a Completed read temperatures and average | 8708025 Created working output formatting,7,,,"clean_score('85') expected 85, got None. clean_score(' 92 ') expected 92, got None. calculate_average helper failed one or more cases. read_scores returned NoneType, not list. Output check: Missing expected output line: Alice Johnson: Average = 87.67 Grade = A; Missing expected output line: Ben Carter: Average = 76.67 Grade = C; Missing expected output line: Carlos Rivera: Average = 93.33 Grade = A; Missing expected output line: Dana Lee: Average = 90.00 Grade = A; Missing expected output line: Eli Morgan: Average = 72.50 Grade = C; Missing expected output line: Fatima Ahmed: Average = 84.00 Grade = B; Missing expected output line: Grace Kim: Average = 90.00 Grade = A; Missing expected output line: Henry Smith: Average = 65.00 Grade = D; Missing expected output line: Isabella Brown: Average = 90.00 Grade = A; Missing expected output line: Jackson Davis: Average = 55.00 Grade = F; Missing expected output line: Number of students: 10; Missing expected output line: Class average: 80.42; Missing expected output line: Highest average: 93.33; Missing expected output line: Lowest average: 55.00. "
