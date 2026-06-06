@@ -33,5 +33,13 @@ def main():
     print("Equality test:")
     print(times[1], "==", times[4], "?", times[1] == times[4])
 
+    print()
+    print("Addition test:")
+    total_time = TimeDuration(0, 0, 0)
+    for time in times:
+        total_time = total_time + time
+
+    print("Total time for all runners:", total_time)
+
 
 main()
