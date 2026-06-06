@@ -43,7 +43,6 @@ def compute_average(values):
     return 0.0
 
 
-
 def compute_minimum(values):
     """
     Compute the minimum value in a list of numbers.

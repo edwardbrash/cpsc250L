@@ -19,7 +19,6 @@ class StudentRecord:
         self.scores = []
 
     def add_score(self, score):
-        # add a score to the scores list
         """
         Add one quiz score to this student's list of scores.
 

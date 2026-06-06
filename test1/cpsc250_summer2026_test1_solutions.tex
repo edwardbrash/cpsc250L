@@ -1,0 +1,180 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage[margin=1in]{geometry}
+\usepackage{courier}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{CPSC 250 -- Python for Data Manipulation -- Summer 2026 Test 1 -- Solutions}
+\lhead{Name:\underline{\hspace{6cm}}}
+\rfoot{Page \thepage}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{orange},
+  showstringspaces=false,
+}
+
+\begin{document}
+
+\begin{center}
+    \Large \textbf{CPSC 250 -- Python for Data Manipulation -- Summer 2026 Test 1} \\
+    \large \textbf{Solution Set} \\
+    \normalsize Topics: Primitive Data Types, Lists \& Tuples, Branching, Loops
+\end{center}
+
+\vspace{0.5cm}
+
+\section*{Part I -- Multiple Choice (10 points)}
+
+\begin{enumerate}[label=\arabic*.]
+    \item \textbf{B} \quad The remainder when 17 is divided by 5 is 2, so \texttt{17 \% 5} evaluates to \texttt{2}.
+
+    \item \textbf{C} \quad Tuples use parentheses, so \texttt{(4, 5, 6)} creates a tuple.
+
+    \item \textbf{B} \quad \texttt{float("7")} converts the string \texttt{"7"} to \texttt{7.0}. Then \texttt{7.0 + 2} is \texttt{9.0}.
+
+    \item \textbf{B} \quad The condition \texttt{age < 18 or age > 65} is true when \texttt{age} is outside that range.
+
+    \item \textbf{C} \quad The index \texttt{-1} refers to the last element of the list, which is \texttt{30}.
+\end{enumerate}
+
+\section*{Part II -- Find the Error (15 points)}
+
+\begin{enumerate}[resume,label=\arabic*.]
+    \item Error: Parentheses are used for function calls, not list indexing. To access an element of a list, use square brackets.
+
+Corrected code:
+\begin{lstlisting}
+scores = [85, 90, 95]
+print(scores[1])
+\end{lstlisting}
+
+    \item Error: The \texttt{if} statement is missing a colon at the end of the condition.
+
+Corrected code:
+\begin{lstlisting}
+if x > 10:
+    print("Large")
+\end{lstlisting}
+
+    \item Error: The body of the \texttt{for} loop must be indented.
+
+Corrected code:
+\begin{lstlisting}
+total = 0
+for i in range(5):
+    total += i
+print(total)
+\end{lstlisting}
+
+This prints \texttt{10}, because \texttt{0 + 1 + 2 + 3 + 4 = 10}.
+\end{enumerate}
+
+\section*{Part III -- Code Writing (20 points)}
+
+\begin{enumerate}[resume,label=\arabic*.]
+    \item Sample solution:
+
+\begin{lstlisting}
+even_count = 0
+
+for i in range(8):
+    num = int(input("Enter an integer: "))
+    if num % 2 == 0:
+        even_count += 1
+
+print("Number of even values:", even_count)
+\end{lstlisting}
+
+    \item Sample solution:
+
+\begin{lstlisting}
+for num in range(5, 51, 5):
+    print(num)
+\end{lstlisting}
+
+Alternative correct solution:
+
+\begin{lstlisting}
+for num in range(1, 11):
+    print(num * 5)
+\end{lstlisting}
+\end{enumerate}
+
+\section*{Part IV -- Code Comprehension and Commenting (15 points)}
+
+One possible commented version is shown below. Student comments do not need to match this wording exactly, but they should correctly describe the purpose of each part of the program.
+
+\begin{lstlisting}
+# Create a list of numbers.
+numbers = [4, 8, 1, 6, 9]
+
+# Start by assuming the first number is the largest.
+largest = numbers[0]
+
+# Loop through each number in the list.
+for n in numbers:
+
+# If the current number is larger than the largest value so far, update largest.
+    if n > largest:
+        largest = n
+
+# Print the largest value found in the list.
+print("Largest value:", largest)
+\end{lstlisting}
+
+The program prints:
+
+\begin{lstlisting}
+Largest value: 9
+\end{lstlisting}
+
+\section*{Part V -- Short Answer (10 points)}
+
+\begin{enumerate}[resume,label=\arabic*.]
+    \item The single equals sign, \texttt{=}, is the assignment operator. It stores a value in a variable.
+
+Example:
+\begin{lstlisting}
+x = 5
+\end{lstlisting}
+
+The double equals sign, \texttt{==}, is the equality comparison operator. It checks whether two values are equal and produces \texttt{True} or \texttt{False}.
+
+Example:
+\begin{lstlisting}
+if x == 5:
+    print("x is equal to 5")
+\end{lstlisting}
+
+    \item A \texttt{for} loop is usually used when we know how many times we want to repeat something, or when we want to loop through a sequence such as a list, tuple, string, or range.
+
+Example use: looping through all numbers in a list.
+
+\begin{lstlisting}
+for value in numbers:
+    print(value)
+\end{lstlisting}
+
+A \texttt{while} loop is usually used when we want to repeat something as long as a condition remains true, especially when we do not know in advance how many repetitions will be needed.
+
+Example use: repeatedly asking the user for input until they enter a valid value.
+
+\begin{lstlisting}
+value = int(input("Enter a positive number: "))
+while value <= 0:
+    value = int(input("Try again: "))
+\end{lstlisting}
+\end{enumerate}
+
+\section*{Total: \underline{\hspace{2cm}} / 70}
+
+\end{document}

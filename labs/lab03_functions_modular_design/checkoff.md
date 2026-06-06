@@ -8,4 +8,5 @@
 - [ ] Program is commented appropriately
 - [ ] Git history shows meaningful commits
 - [ ] Work has been pushed to GitHub
-
+- [ ] Student made four commits
+- [ ] Student pushed to GitHub

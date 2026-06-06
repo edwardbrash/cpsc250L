@@ -1,3 +1,17 @@
-*__pycache__*
-.idea/*
-.DS_store
+# Python cache files
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# student repos
+grading/student_repos

@@ -35,7 +35,6 @@ def calculate_average(scores):
         return None
     return sum(valid_scores) / len(valid_scores)
 
-
 def read_scores(filename):
     """
     Read student quiz scores from a CSV file.
@@ -82,7 +81,6 @@ def read_scores(filename):
     return records
 
 
-
 def letter_grade(average):
     """
     Return a simple letter grade based on the average.
@@ -109,7 +107,6 @@ def letter_grade(average):
     else:
         return "F"
 
-
 def print_student_report(records):
     """
     Print one line of output for each student.
@@ -119,7 +116,6 @@ def print_student_report(records):
         average = record["average"]
         grade = letter_grade(average)
         print(f"{name}: Average = {average:.2f} Grade = {grade}")
-
 
 def print_class_summary(records):
     """
@@ -146,6 +142,7 @@ def print_class_summary(records):
 def main():
     filename = "../data/quiz_scores.csv"
 
+    # list object returned by read_scores()
     records = read_scores(filename)
 
     print_student_report(records)
