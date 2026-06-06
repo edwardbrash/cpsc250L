@@ -2,25 +2,93 @@
 #
 # Complete this class. You may reuse ideas from Lab 5.
 
-
 class StudentRecord:
+    # class constructor
     def __init__(self, name, student_id):
-        pass
+        """
+        Create a new student record.
 
-    def add_score(self, score):
-        pass
+        Parameters:
+            name: student name as a string
+            student_id: student ID as a string
+            scores[]: scores as a list (empty by default)
+        """
+        self.name = name
+        self.student_id = student_id
+        self.scores = []
+
+    def add_score(self, scores):
+        """
+        Add one quiz score to this student's list of scores.
+
+        Only add scores between 0 and 100.
+        """
+        self.scores = scores
+
 
     def calculate_average(self):
-        pass
+        """
+        Return the average quiz score.
+
+        If the student has no scores, return None.
+        """
+        if self.scores is None:
+            return None
+        valid_scores = [score for score in self.scores if score is not None]
+        if not valid_scores:
+            return None
+        return sum(valid_scores) / len(valid_scores)
 
     def highest_score(self):
-        pass
+        """
+        Return the highest quiz score.
+
+        If the student has no scores, return None.
+        """
+        if self.scores:
+            return max(self.scores)
+        else:
+            return None
 
     def lowest_score(self):
-        pass
+        """
+        Return the lowest quiz score.
+
+        If the student has no scores, return None.
+        """
+        if self.scores:
+            return min(self.scores)
+        else:
+            return None
 
     def letter_grade(self):
-        pass
+        """
+        Return a letter grade based on the student's average.
+
+        Suggested scale:
+            A: average >= 87
+            B: average >= 77
+            C: average >= 67
+            D: average >= 57
+            F: otherwise
+        """
+        average = self.calculate_average()
+        if average is None:
+            return "N/A"
+        elif average >= 87:
+            return "A"
+        elif average >= 77:
+            return "B"
+        elif average >= 67:
+            return "C"
+        elif average >= 57:
+            return "D"
+        else:
+            return "F"
 
     def __str__(self):
-        pass
+        """
+        Return a readable string representation of the student record.
+        """
+        # maybe this could be fancied up later!
+        return f"StudentRecord(name={self.name}, student_id={self.student_id}, scores={getattr(self, 'scores', [])})"
