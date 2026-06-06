@@ -2,6 +2,6 @@
 
 Current active lab:
 
-- lab04_csv_file_processing
+- lab05_classes_feature_branches
 
 Students should complete this lab during the current laboratory session.

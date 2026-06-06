@@ -1,0 +1,11 @@
+student_id,name,quiz1,quiz2,quiz3
+A001,Alice Johnson,85,90,88
+B002,Ben Carter,72,78,80
+C003,Carlos Rivera,91,95,94
+D004,Dana Lee,88,,92
+E005,Eli Morgan,70,invalid,75
+F006,Fatima Ahmed,84,82,86
+G007,Grace Kim,absent,89,91
+H008,Henry Smith,65,70,60
+I009,Isabella Brown,92,88,90
+J010,Jackson Davis,55,,invalid
