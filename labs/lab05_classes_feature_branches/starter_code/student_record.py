@@ -13,7 +13,9 @@ class StudentRecord:
             student_id: student ID as a string
             scores[]: scores as a list (empty by default)
         """
-        pass
+        self.name = name
+        self.student_id = student_id
+        self.scores = []
 
     def add_score(self, score):
         """
@@ -21,7 +23,8 @@ class StudentRecord:
 
         Only add scores between 0 and 100.
         """
-        pass
+        if 0 <= score <= 100:
+            self.scores.append(score)
 
     def calculate_average(self):
         """
@@ -29,7 +32,12 @@ class StudentRecord:
 
         If the student has no scores, return None.
         """
-        pass
+        a = len(self.scores)
+        sum = 0.0
+        for score in self.scores:
+            sum = sum + score
+        average = sum / a
+        return average
 
     def highest_score(self):
         """
@@ -37,7 +45,7 @@ class StudentRecord:
 
         If the student has no scores, return None.
         """
-        pass
+        return max(self.scores)
 
     def lowest_score(self):
         """
@@ -45,7 +53,7 @@ class StudentRecord:
 
         If the student has no scores, return None.
         """
-        pass
+        return min(self.scores)
 
     def letter_grade(self):
         """
@@ -58,10 +66,22 @@ class StudentRecord:
             D: average >= 57
             F: otherwise
         """
-        pass
+        average = self.calculate_average()
+        if average >= 87:
+            return "A"
+        elif average >= 77:
+            return "B"
+        elif average >= 67:
+            return "C"
+        elif average >= 57:
+            return "D"
+        else:
+            return "F"
 
     def __str__(self):
         """
         Return a readable string representation of the student record.
         """
-        return "dummy string"
+        StudentRecord = (f'StudentRecord(name = {self.name}, student_id = {self.student_id}, scores = {self.scores})')
+        return StudentRecord
+
