@@ -14,30 +14,37 @@ def main():
         TimeDuration(0, 39, 58),
     ]
 
+
     print("Original race times:")
     for time in times:
         print(time)
+
 
     print()
     print("Sorted race times:")
     sorted_times = sorted(times)
 
+
     for time in sorted_times:
         print(time)
+
 
     print()
     print("Fastest time:", sorted_times[0])
     print("Slowest time:", sorted_times[-1])
 
+
     print()
     print("Equality test:")
     print(times[1], "==", times[4], "?", times[1] == times[4])
+
 
     print()
     print("Addition test:")
     total_time = TimeDuration(0, 0, 0)
     for time in times:
         total_time = total_time + time
+
 
     print("Total time for all runners:", total_time)
 
