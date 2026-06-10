@@ -25,12 +25,16 @@ def calculate_average(scores):
 
     If the list is empty, return None.
     """
-    if scores is None:
+    sum = 0.0
+    count = 0
+    for score in scores:
+        if score is not None:
+            sum += score
+            count += 1
+    if count > 0:
+        return sum / count
+    else:
         return None
-    valid_scores = [score for score in scores if score is not None]
-    if not valid_scores:
-        return None
-    return sum(valid_scores) / len(valid_scores)
 
 def read_student_records(filename):
     """
@@ -103,9 +107,11 @@ def print_class_report(students):
         print(student)
     print(f"Class average: {class_average(students):.2f}")
     highest_student = find_highest_average_student(students)
+    #print(highest_student)
     if highest_student is not None:
         print(f"Highest average: {highest_student.name} with {highest_student.calculate_average():.2f}")
     lowest_student = find_lowest_average_student(students)
+    #print(lowest_student)
     if lowest_student is not None:
         print(f"Lowest average: {lowest_student.name} with {lowest_student.calculate_average():.2f}")
 
