@@ -14,7 +14,7 @@ class Book:
         self.genre = genre
         self.pages = pages
         self.rating = rating
-        self.amount = 0 # set default stock to zero
+        self.amount = 1 # set default stock to 1
 
     def add_stock(self, amount):
         """
