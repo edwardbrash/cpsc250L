@@ -11,6 +11,7 @@ def create_inventory():
 
     with open("../data/booklist.csv") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
+        csv_header = next(csv_reader) # skip header
         for row in csv_reader:
             title = row[0]
             author = row[1]
