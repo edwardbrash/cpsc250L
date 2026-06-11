@@ -45,17 +45,7 @@ class Book:
         Compare books alphabetically by author name, then by title.
 
         Algorithm:
-        Split the author name into fields
-        Alphabetize according to the LAST field in the title
+        Sort by title
         """
-        self_author_fields = self.author.split()
-        other_author_fields = other.author.split()
+        return self.title.lower() < other.title.lower()
 
-        # Compare the last field of the author name
-        if self_author_fields[-1] < other_author_fields[-1]:
-            return True
-        elif self_author_fields[-1] > other_author_fields[-1]:
-            return False
-        else:
-            # If the last field is the same, compare the title
-            return self.title < other.title
