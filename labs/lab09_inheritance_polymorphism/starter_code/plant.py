@@ -28,7 +28,7 @@ class Vegetable(Plant):
         self.harvest_days = harvest_days
 
     def care_instructions(self):
-        return "Water regularly, provide full sun, and fertilize every 2 weeks."
+        return "Water regularly, provide full sun, and fertilize every two weeks."
 
     def __str__(self):
         return f'Vegetable: {self.name}, Height: {self.height_cm} cm, Harvest in: {self.harvest_days} days'
