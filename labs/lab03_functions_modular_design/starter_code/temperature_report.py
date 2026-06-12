@@ -29,12 +29,12 @@ def print_report(values):
     average = calculate_average(values)
     maximum = find_maximum(values)
     minimum = find_minimum(values)
-    above_threshold_count = count_above_threshold(values, 30)  # Example threshold
+    above_threshold_count = count_above_threshold(values, 80)  # Example threshold
 
     print(f"Average Temperature: {average:.2f}")
     print(f"Maximum Temperature: {maximum:.2f}")
     print(f"Minimum Temperature: {minimum:.2f}")
-    print(f"Number of Days Above 30°C: {above_threshold_count}")
+    print(f"Temperatures above 80: {above_threshold_count}")
 
 def main():
     temperatures = read_temperatures("../data/june_temperatures.txt")
