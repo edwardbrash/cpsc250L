@@ -1,5 +1,5 @@
 class Plant:
-    def __init__(self, name, height_cm):
+    def __init__(self, name, height_cm=20):
         self.name = name
         self.height_cm = height_cm
 
@@ -11,7 +11,7 @@ class Plant:
 
 
 class Flower(Plant):
-    def __init__(self, name, height_cm, color):
+    def __init__(self, name, height_cm=30, color="Green"):
         super().__init__(name, height_cm)
         self.color = color
 
@@ -23,7 +23,7 @@ class Flower(Plant):
 
 
 class Vegetable(Plant):
-    def __init__(self, name, height_cm, harvest_days):
+    def __init__(self, name, height_cm=10, harvest_days=90):
         super().__init__(name, height_cm)
         self.harvest_days = harvest_days
 
