@@ -69,8 +69,8 @@ def main():
     values = random.sample(range(0, 1000), 500)
     values.sort()
 
-    # Find the 500th value in the list
-    search_value = values[499]
+    # Find the 250th value in the list
+    search_value = values[249]
 
     print("Search Tests")
     print("------------")
