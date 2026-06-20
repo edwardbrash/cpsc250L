@@ -10,12 +10,12 @@ def load_data(filename):
 
 def fit_line(x, y):
     slope, intercept = np.polyfit(x, y, 1)
-    yfit = slope * x + intercept
-    return yfit, slope, intercept
+    return slope, intercept
 
 
 def predict(x, slope, intercept):
-    pass
+    yfit = slope * x + intercept
+    return yfit
 
 
 def main():
@@ -29,7 +29,8 @@ def main():
     plt.ylabel("Exam Score")
 
 
-    yfit, slope, intercept = fit_line(df['hours'], df['score'])
+    slope, intercept = fit_line(df['hours'], df['score'])
+    yfit = predict(df['hours'], slope, intercept)
     plt.plot(df['hours'], yfit, 'r-', label=f'Linear Fit - y = {slope:.2f}x + {intercept:.2f}')
 
     plt.legend()
