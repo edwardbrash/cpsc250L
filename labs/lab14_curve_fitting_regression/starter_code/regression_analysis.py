@@ -14,8 +14,8 @@ def fit_line(x, y):
 
 
 def predict(x, slope, intercept):
-    yfit = slope * x + intercept
-    return yfit
+    y_fit = slope * x + intercept
+    return y_fit
 
 
 def main():
@@ -24,14 +24,14 @@ def main():
 
     plt.figure()
     plt.plot(df['hours'], df['score'], 'o', label='Exam Score')
-    plt.title('CPSC 250 Final Exam Score')
+    plt.title('Computer Science 250 Final Exam Score')
     plt.xlabel("Study Hours")
     plt.ylabel("Exam Score")
 
 
     slope, intercept = fit_line(df['hours'], df['score'])
-    yfit = predict(df['hours'], slope, intercept)
-    plt.plot(df['hours'], yfit, 'r-', label=f'Linear Fit - y = {slope:.2f}x + {intercept:.2f}')
+    y_fit = predict(df['hours'], slope, intercept)
+    plt.plot(df['hours'], y_fit, 'r-', label=f'Linear Fit - y = {slope:.2f}x + {intercept:.2f}')
 
     plt.legend()
     plt.show()
