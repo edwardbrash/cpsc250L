@@ -48,7 +48,7 @@ def main():
     dataframe = add_celsius(dataframe)
 
     T_low_cut = 19.0
-    T_high_cut = 32.0
+    T_high_cut = 31.0
     dataframe = clean_temperature_range(dataframe, T_low_cut, T_high_cut)
 
     print_summary(dataframe)
