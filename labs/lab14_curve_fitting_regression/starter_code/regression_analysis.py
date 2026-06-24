@@ -9,7 +9,9 @@ def load_data(filename):
     df = pd.read_csv(filename)
     return df
 
-def fit_line(x, y):
+def fit_polyfit(df):
+    x = np.array(df['hours'])
+    y = np.array(df['score'])
     slope, intercept = np.polyfit(x, y, 1)
     return slope, intercept
 
@@ -46,7 +48,7 @@ def main():
     df = load_data(filename)
 
     # calculate the slope and intercept of the best fit line
-    slope, intercept = fit_line(df['hours'], df['score'])
+    slope, intercept = fit_polyfit(df)
     print("Best fit: y = {slope:.4f}x + {intercept:.4f}".format(slope=slope, intercept=intercept))
     print('-------------------------------------')
 
